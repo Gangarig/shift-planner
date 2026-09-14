@@ -17,7 +17,10 @@ interface PlannerGridProps {
 }
 
 function PlannerGrid({ stations, workers, assignments, onCreateAssignment, onUpdateAssignment, onRemoveAssignment, onSelectAssignment, weekDays }: PlannerGridProps) {
-  const canAssignWorker = (workerId: string, date: Date, ignoredAssignmentId?: string) => !assignments.some((item) => item.id !== ignoredAssignmentId && item.workerId === workerId && toDateKey(item.date) === toDateKey(date))
+  const canAssignWorker = (workerId: string, date: Date, ignoredAssignmentId?: string) => {
+    const worker = workers.find((item) => item.id === workerId)
+    return worker?.status === 'available' && !assignments.some((item) => item.id !== ignoredAssignmentId && item.workerId === workerId && toDateKey(item.date) === toDateKey(date))
+  }
   return <Paper withBorder className="planner-matrix"><div className="planner-matrix-grid">
     <div className="planner-corner"><Text size="xs" fw={700} c="dimmed">Station</Text></div>
     {weekDays.map((day) => <div className="planner-day-header" key={day.label}><Text fw={700} size="sm"><span className="day-name-full">{day.label}</span><span className="day-name-short">{day.label.slice(0, 3)}</span></Text></div>)}

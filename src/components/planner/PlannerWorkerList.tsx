@@ -17,7 +17,7 @@ function PlannerWorkerList({ workers, assignments }: PlannerWorkerListProps) {
   function workerCard(worker: Worker, draggable: boolean) {
     const shiftCount = assignments.filter((assignment) => assignment.workerId === worker.id).length
     return <Paper withBorder px={6} py={5} key={worker.id} radius="sm" draggable={draggable}
-      onDragStart={(event) => { event.dataTransfer.setData('application/x-shift-worker', worker.id); event.dataTransfer.effectAllowed = 'copy' }}
+      onDragStart={(event) => { event.dataTransfer.setData('application/x-shift-worker', worker.id); event.dataTransfer.setData('text/plain', worker.id); event.dataTransfer.effectAllowed = 'copy' }}
       style={{ cursor: draggable ? 'grab' : 'default' }}>
       <Group wrap="nowrap" gap={6}>
         <Avatar size={24} color={statusColors[worker.status]}>{worker.name.slice(0, 2).toUpperCase()}</Avatar>

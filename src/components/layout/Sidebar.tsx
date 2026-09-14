@@ -1,15 +1,16 @@
 import { Divider, NavLink, Stack, Text } from '@mantine/core';
 import { Link, useLocation } from 'react-router-dom';
-import currentUser from '../../data/mockCurrentUser';
 import { Fragment } from 'react/jsx-runtime';
 import navLinks from '../../data/navigation';
+import { useAuth } from '../../context/AuthContext';
 interface SidebarProps {
   onNavigate?: () => void
 }
 
 function Sidebar({ onNavigate }: SidebarProps) {
   const location = useLocation()
-  const user = currentUser
+  const { user } = useAuth()
+  if (!user) return null
   const items = navLinks
     .filter(link => link.roles.includes(user.role))
     .map((link) => (
