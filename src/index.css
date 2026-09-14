@@ -1,0 +1,203 @@
+html {
+  background: var(--mantine-color-body);
+}
+
+body {
+  margin: 0;
+  color: var(--mantine-color-text);
+  background: var(--mantine-color-body);
+}
+
+[data-mantine-color-scheme='light'] {
+  --app-surface-soft: #f1f3f5;
+  --app-surface-raised: #ffffff;
+  --app-border: #dee2e6;
+  --app-assignment: #e7f5ff;
+  --app-empty: #f8f9fa;
+}
+
+[data-mantine-color-scheme='dark'] {
+  --mantine-color-body: #111827;
+  --mantine-color-text: #e5e7eb;
+  --mantine-color-dimmed: #9ca3af;
+  --mantine-color-default: #1f2937;
+  --mantine-color-default-hover: #273449;
+  --mantine-color-default-border: #374151;
+  --mantine-color-blue-light: rgba(59, 130, 246, 0.16);
+  --mantine-color-blue-light-hover: rgba(59, 130, 246, 0.22);
+  --mantine-color-blue-light-color: #93c5fd;
+  --app-surface-soft: #1f2937;
+  --app-surface-raised: #18212f;
+  --app-border: #374151;
+  --app-assignment: #172f52;
+  --app-empty: #18212f;
+}
+
+[data-mantine-color-scheme='dark'] .mantine-Paper-root {
+  background-color: var(--app-surface-raised);
+}
+
+.page-container {
+  width: min(100%, 1280px);
+  margin-inline: auto;
+}
+
+.planner-workers {
+  position: sticky;
+  top: 86px;
+}
+
+.availability-grid {
+  display: grid;
+  grid-template-columns: minmax(96px, 1.15fr) repeat(5, minmax(0, 1fr));
+  border: 1px solid var(--app-border);
+  border-radius: var(--mantine-radius-sm);
+  overflow: hidden;
+}
+
+.availability-row {
+  display: contents;
+}
+
+.availability-header,
+.availability-cell,
+.availability-worker {
+  min-width: 0;
+  min-height: 34px;
+  padding: 5px 7px;
+  display: flex;
+  align-items: center;
+  border-right: 1px solid var(--app-border);
+  border-bottom: 1px solid var(--app-border);
+}
+
+.availability-header {
+  justify-content: center;
+  color: var(--mantine-color-dimmed);
+  background: var(--app-surface-soft);
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 700;
+}
+
+.availability-cell {
+  justify-content: center;
+}
+
+.availability-cell .mantine-Badge-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.planner-grid-cell {
+  min-width: 0;
+  min-height: 76px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  background: var(--app-empty);
+  border-right: 1px solid var(--app-border);
+  border-bottom: 1px solid var(--app-border);
+}
+
+.planner-grid-cell--assigned {
+  background: var(--app-assignment);
+}
+
+.planner-matrix {
+  overflow: hidden;
+  border-color: var(--app-border);
+}
+
+.planner-matrix-grid {
+  display: grid;
+  grid-template-columns: minmax(112px, 0.8fr) repeat(5, minmax(0, 1fr));
+}
+
+.planner-row {
+  display: contents;
+}
+
+.planner-corner,
+.planner-day-header,
+.planner-station-header {
+  min-width: 0;
+  min-height: 48px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  background: var(--app-surface-soft);
+  border-right: 1px solid var(--app-border);
+  border-bottom: 1px solid var(--app-border);
+}
+
+.planner-day-header {
+  justify-content: center;
+  text-align: center;
+}
+
+.planner-station-header {
+  min-height: 76px;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.day-name-short {
+  display: none;
+}
+
+@media (max-width: 62em) {
+  .planner-workers {
+    position: static;
+  }
+}
+
+@media (max-width: 36em) {
+  .availability-grid {
+    grid-template-columns: 72px repeat(5, minmax(0, 1fr));
+  }
+
+  .availability-header,
+  .availability-cell,
+  .availability-worker {
+    min-height: 30px;
+    padding: 3px;
+  }
+
+  .availability-cell .mantine-Badge-root {
+    padding-inline: 3px;
+    font-size: 8px;
+  }
+
+  .planner-grid-cell {
+    min-height: 60px;
+    padding: 5px;
+  }
+
+  .planner-matrix-grid {
+    grid-template-columns: 76px repeat(5, minmax(0, 1fr));
+  }
+
+  .planner-corner,
+  .planner-day-header,
+  .planner-station-header {
+    padding: 5px;
+  }
+
+  .planner-station-header {
+    min-height: 60px;
+  }
+
+  .planner-station-header .mantine-Badge-root,
+  .planner-grid-cell .mantine-Badge-root {
+    font-size: 8px;
+    padding-inline: 4px;
+  }
+
+  .day-name-full {
+    display: none;
+  }
+
+  .day-name-short {
+    display: inline;
+  }
+}
