@@ -9,17 +9,17 @@ body {
 }
 
 [data-mantine-color-scheme='light'] {
-  --mantine-color-body: #f7f9fb;
-  --mantine-color-text: #1f2937;
-  --mantine-color-dimmed: #657786;
+  --mantine-color-body: #f8fafc;
+  --mantine-color-text: #202b36;
+  --mantine-color-dimmed: #6b7785;
   --mantine-color-default: #ffffff;
   --mantine-color-default-hover: #f2f7fa;
   --mantine-color-default-border: #d9e2e8;
-  --app-surface-soft: #eef5f8;
+  --app-surface-soft: #f1f5f7;
   --app-surface-raised: #ffffff;
   --app-border: #d9e2e8;
-  --app-assignment: #e8f5fc;
-  --app-empty: #fbfdfe;
+  --app-assignment: #edf6fb;
+  --app-empty: #ffffff;
 }
 
 [data-mantine-color-scheme='dark'] {
@@ -110,8 +110,8 @@ body {
 }
 
 .planner-grid-cell--drop-target {
-  background: #d8f0fb;
-  box-shadow: inset 0 0 0 2px #57afe0;
+  background: #e4f2f9;
+  box-shadow: inset 0 0 0 2px #4b93b9;
 }
 
 .planner-grid-cell[draggable='true'] {
@@ -120,7 +120,7 @@ body {
 
 .planner-grid-cell[draggable='true']:hover {
   transform: translateY(-1px);
-  box-shadow: inset 0 0 0 1px #7cc5e9;
+  box-shadow: inset 0 0 0 1px #92b9cc;
 }
 
 .planner-matrix {
