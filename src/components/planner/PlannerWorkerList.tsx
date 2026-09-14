@@ -7,7 +7,7 @@ interface PlannerWorkerListProps {
   assignments: Assignment[]
 }
 
-const statusColors: Record<WorkerStatus, string> = { available: 'green', sick: 'red', holiday: 'orange', inactive: 'gray' }
+const statusColors: Record<WorkerStatus, string> = { available: 'blue', sick: 'gray', holiday: 'gray', inactive: 'gray' }
 const unavailableStatuses: WorkerStatus[] = ['sick', 'holiday', 'inactive']
 
 function PlannerWorkerList({ workers, assignments }: PlannerWorkerListProps) {

@@ -8,7 +8,7 @@ interface WorkerCardProps {
 
 function WorkerCard({worker,selectedWorker,onSelectWorker}:WorkerCardProps) {
     const isSelected = worker.id === selectedWorker?.id;
-    const colors: Record<WorkerStatus, string> = { available: 'green', sick: 'red', holiday: 'orange', inactive: 'gray' };
+    const colors: Record<WorkerStatus, string> = { available: 'blue', sick: 'gray', holiday: 'gray', inactive: 'gray' };
   return (
     <Paper component="button" type="button" withBorder p="md" radius="md"
     onClick={() => onSelectWorker(worker)}

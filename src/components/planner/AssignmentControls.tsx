@@ -9,7 +9,7 @@ interface AssignmentControlsProps {
   stations: Station[]
   workers: Worker[]
   assignments: Assignment[]
-  onCreateAssignment: (value: NewAssignment) => Promise<void>
+  onCreateAssignment: (value: NewAssignment) => Promise<boolean>
   onCreated?: () => void
   weekDays: Weekdays
 }
@@ -28,8 +28,8 @@ function AssignmentControls({ stations, workers, assignments, onCreateAssignment
     const isStationTaken = assignments.some((item) => item.stationId === station.id && toDateKey(item.date) === selectedDate)
     const isWorkerTaken = assignments.some((item) => item.workerId === worker.id && toDateKey(item.date) === selectedDate)
     if (isStationTaken || isWorkerTaken) return
-    await onCreateAssignment({ workerId: worker.id, stationId: station.id, date, note: note.trim() || null })
-    onCreated?.()
+    const saved = await onCreateAssignment({ workerId: worker.id, stationId: station.id, date, note: note.trim() || null })
+    if (saved) onCreated?.()
   }
 
   return <Stack gap="sm">

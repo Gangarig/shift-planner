@@ -1,28 +1,138 @@
-import { useState } from 'react'
-import { Box, Button, Grid, Group, LoadingOverlay, Modal, Stack, Text, Title } from '@mantine/core'
-import { useDisclosure } from '@mantine/hooks'
-import AssignmentDetail from '../components/planner/AssignmentDetail'
-import PlannerGrid from '../components/planner/PlannerGrid'
-import AssignmentControls from '../components/planner/AssignmentControls'
-import PlannerWorkerList from '../components/planner/PlannerWorkerList'
-import type { Assignment } from '../types/Assignment'
+import { useRef, useState } from 'react'
+import { Alert, Badge, Button, Group, Modal, Paper, SegmentedControl, Select, Stack, Text, Textarea, TextInput, Title } from '@mantine/core'
 import useApp from '../hooks/useApp'
+import { useAuth } from '../context/AuthContext'
+import { fromDateKey, toDateKey } from '../lib/dateUtils'
+import { assignmentProblem } from '../lib/plannerRules'
+import type { Assignment } from '../types/Assignment'
 
-function PlannerPage() {
-  const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null)
-  const [createOpened, { open: openCreate, close: closeCreate }] = useDisclosure(false)
-  const { workers, stations, assignments, createAssignment, updateAssignment, removeAssignment, loadingAssignments, assignmentsError, weekDays } = useApp()
+type Selection = { kind: 'worker' | 'assignment'; id: string }
+export default function PlannerPage() {
+  const app = useApp()
+  const { user } = useAuth()
+  const canEdit = ['manager', 'admin', 'owner'].includes(user?.role ?? '')
+  const [selection, setSelection] = useState<Selection | null>(null)
+  const dragging = useRef<Selection | null>(null)
+  const [density, setDensity] = useState('comfortable')
+  const [search, setSearch] = useState('')
+  const [workerSearch, setWorkerSearch] = useState('')
+  const [target, setTarget] = useState('')
+  const [message, setMessage] = useState('')
+  const [busy, setBusy] = useState(false)
+  const lock = useRef(false)
+  const [editor, setEditor] = useState<{ stationId: string; date: string; id?: string } | null>(null)
+  const [workerId, setWorkerId] = useState('')
+  const [note, setNote] = useState('')
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const days = app.weekDays
+  const dates = new Set(days.map(d => toDateKey(d.date)))
+  const weekAssignments = app.assignments.filter(a => dates.has(toDateKey(a.date)))
+  const stations = app.stations.filter(s => s.name.toLowerCase().includes(search.toLowerCase()))
+  const workers = app.workers.filter(w => w.name.toLowerCase().includes(workerSearch.toLowerCase()))
+  const sourceAssignment = selection?.kind === 'assignment' ? app.assignments.find(a => a.id === selection.id) : undefined
+  const selectedName = selection ? app.workers.find(w => w.id === (sourceAssignment?.workerId ?? selection.id))?.name : ''
+  const loading = app.loadingAssignments || app.loadingWorkers || app.loadingStations
+  const dateLabel = (date: Date) => date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
 
-  return <Box pos="relative" className="page-container">
-    <LoadingOverlay visible={loadingAssignments} loaderProps={{ children: 'Loading...' }} />
-    <Stack gap="lg">
-      <Group justify="space-between" align="flex-end"><div><Title order={1}>Weekly planner</Title><Text c="dimmed">Drag an available worker onto an empty shift cell.</Text></div><Button onClick={openCreate}>New assignment</Button></Group>
-      {assignmentsError && <Text c="red">Could not load assignments.</Text>}
-      <Modal opened={createOpened} onClose={closeCreate} title="New assignment" size="sm" centered><AssignmentControls assignments={assignments} onCreateAssignment={createAssignment} onCreated={closeCreate} workers={workers} stations={stations} weekDays={weekDays} /></Modal>
-      {selectedAssignment && <AssignmentDetail key={selectedAssignment.id} assignment={selectedAssignment} onEditAssignmentNote={updateAssignment} workers={workers} stations={stations} onClose={() => setSelectedAssignment(null)} />}
-      <Grid align="flex-start" gap="lg"><Grid.Col span={{ base: 12, lg: 9 }}><PlannerGrid stations={stations} workers={workers} assignments={assignments} onCreateAssignment={createAssignment} onUpdateAssignment={updateAssignment} onRemoveAssignment={removeAssignment} onSelectAssignment={setSelectedAssignment} weekDays={weekDays} /></Grid.Col><Grid.Col span={{ base: 12, lg: 3 }}><PlannerWorkerList workers={workers} assignments={assignments} /></Grid.Col></Grid>
-    </Stack>
-  </Box>
+  async function save(work: () => Promise<boolean>) {
+    if (lock.current) return false
+    lock.current = true
+    setBusy(true); setMessage('')
+    try {
+      const ok = await work()
+      if (ok) { setSelection(null); setEditor(null); setConfirmDelete(false) }
+      return ok
+    } finally { lock.current = false; setBusy(false) }
+  }
+  async function place(stationId: string, date: Date, picked = selection) {
+    if (!canEdit || !picked || busy) return
+    const assignment = picked.kind === 'assignment' ? app.assignments.find(a => a.id === picked.id) : undefined
+    if (picked.kind === 'assignment' && !assignment) { setMessage('That assignment no longer exists. Refresh the planner.'); return }
+    const id = assignment?.workerId ?? picked.id
+    const problem = assignmentProblem(app.workers.find(w => w.id === id), app.stations.find(s => s.id === stationId), date, app.assignments, assignment?.id)
+    if (problem) { setMessage(problem); return }
+    await save(() => assignment ? app.updateAssignment({ ...assignment, stationId, date }) : app.createAssignment({ workerId: id, stationId, date, note: null }))
+  }
+  function openCell(stationId: string, date: Date, assignment?: Assignment) {
+    if (selection && !assignment) { void place(stationId, date); return }
+    setEditor({ stationId, date: toDateKey(date), id: assignment?.id })
+    setWorkerId(assignment?.workerId ?? ''); setNote(assignment?.note ?? '')
+    setConfirmDelete(false); setMessage('')
+  }
+  async function submit() {
+    if (!editor) return
+    const date = fromDateKey(editor.date)
+    const existing = app.assignments.find(a => a.id === editor.id)
+    // A note-only edit remains valid when a worker later becomes unavailable.
+    const noteOnly = existing && existing.workerId === workerId
+    const problem = noteOnly ? null : assignmentProblem(app.workers.find(w => w.id === workerId), app.stations.find(s => s.id === editor.stationId), date, app.assignments, editor.id)
+    if (problem) { setMessage(problem); return }
+    const value = { workerId, stationId: editor.stationId, date, note: note.trim() || null }
+    await save(() => editor.id ? app.updateAssignment({ ...value, id: editor.id }) : app.createAssignment(value))
+  }
+  function shiftWeek(offset: number) {
+    const next = new Date(app.monday); next.setDate(next.getDate() + offset)
+    app.setSelectedWeekDate(next); setSelection(null); setMessage('')
+  }
+  const coverage = app.stations.filter(s => s.active).length * days.length
+  return <Stack className="page-container" gap="lg">
+    <Group justify="space-between">
+      <div><Text size="xs" tt="uppercase" fw={700} c="dimmed">Your workspace / Schedule</Text><Title order={1}>Weekly planner</Title><Text c="dimmed">{canEdit ? 'Choose a worker, then click an empty cell. Dragging works too.' : 'Your team schedule. Editing is available to managers.'}</Text></div>
+      <Badge variant="light" color="blue">{weekAssignments.length} scheduled · {Math.max(0, coverage - weekAssignments.filter(a => app.stations.find(s => s.id === a.stationId)?.active).length)} open</Badge>
+    </Group>
+    <Paper withBorder p="md">
+      <Group justify="space-between">
+        <Group><Button variant="default" aria-label="Previous week" onClick={() => shiftWeek(-7)}>←</Button><Text fw={700}>{dateLabel(days[0].date)} – {dateLabel(days[4].date)}, {days[0].date.getFullYear()}</Text><Button variant="default" aria-label="Next week" onClick={() => shiftWeek(7)}>→</Button><Button variant="subtle" onClick={() => { app.setSelectedWeekDate(new Date()); setSelection(null) }}>Today</Button></Group>
+        <Group><TextInput aria-label="Jump to week" type="date" value={toDateKey(app.monday)} onChange={e => { if (e.currentTarget.value) { app.setSelectedWeekDate(fromDateKey(e.currentTarget.value)); setSelection(null) } }} /><SegmentedControl aria-label="Grid density" value={density} onChange={setDensity} data={[{ label: 'Compact', value: 'compact' }, { label: 'Comfortable', value: 'comfortable' }]} /></Group>
+      </Group>
+    </Paper>
+    {(message || app.assignmentsError || app.workersError || app.stationsError) && <Alert color="red" title="Please check">{message || app.assignmentsError || app.workersError || app.stationsError}</Alert>}
+    {selection && <Alert color="blue" title={selectedName ? 'Selected: ' + selectedName : 'Assignment selected'}><Group justify="space-between"><Text size="sm">Click an empty cell to {selection.kind === 'assignment' ? 'move this assignment' : 'assign this worker'}.</Text><Button variant="subtle" size="xs" onClick={() => setSelection(null)}>Cancel selection</Button></Group></Alert>}
+    <div className="schedule-layout" aria-busy={busy || loading}>
+      <Stack gap="sm">
+        <TextInput placeholder="Find a station…" aria-label="Find a station" value={search} onChange={e => setSearch(e.currentTarget.value)} />
+        <div className={'schedule-scroll ' + density}>
+          <table className="schedule-table">
+            <thead><tr><th scope="col">Station</th>{days.map(d => <th scope="col" key={d.label} className={toDateKey(d.date) === toDateKey(new Date()) ? 'today' : ''}>{d.label.slice(0, 3)}<span>{dateLabel(d.date)}</span></th>)}</tr></thead>
+            <tbody>{stations.map(station => <tr key={station.id}><th scope="row">{station.name}{!station.active && <small>Inactive</small>}</th>{days.map(day => {
+              const date = toDateKey(day.date)
+              const cellKey = station.id + date
+              const assignment = weekAssignments.find(a => a.stationId === station.id && toDateKey(a.date) === date)
+              const worker = app.workers.find(w => w.id === assignment?.workerId)
+              return <td key={date} className={target === cellKey ? 'drop-target' : ''} onDragOver={e => { if (canEdit && dragging.current && !assignment && station.active && !busy) { e.preventDefault(); e.dataTransfer.dropEffect = dragging.current.kind === 'assignment' ? 'move' : 'copy'; setTarget(cellKey) } }} onDragLeave={() => setTarget('')} onDrop={e => { e.preventDefault(); setTarget(''); const picked = dragging.current; dragging.current = null; void place(station.id, day.date, picked) }}>
+                <button type="button" className={'schedule-cell ' + (assignment ? 'filled' : 'empty')} disabled={busy || loading || (!assignment && (!canEdit || !station.active))} aria-label={(worker?.name ?? 'Assign worker') + ', ' + station.name + ', ' + date} onClick={() => openCell(station.id, day.date, assignment)} draggable={canEdit && !!assignment && !busy}
+                  onDragStart={e => { if (assignment) { dragging.current = { kind: 'assignment', id: assignment.id }; e.dataTransfer.setData('text/plain', assignment.id); e.dataTransfer.effectAllowed = 'move' } }}
+                  onDragEnd={() => { dragging.current = null; setTarget('') }}>
+                  {assignment ? <><strong>{worker?.name ?? 'Unknown worker'}</strong><span>{assignment.note || 'View assignment'}</span></> : <span>{station.active ? '+ Assign' : '—'}</span>}
+                </button>
+              </td>
+            })}</tr>)}</tbody>
+          </table>
+        </div>
+        {!stations.length && <Text c="dimmed" ta="center" p="xl">{loading ? 'Loading stations…' : 'No stations match. Add a station from the Stations page.'}</Text>}
+        <Text size="xs" c="dimmed" aria-live="polite">{busy ? 'Saving your changes…' : 'One worker per station per day. Changes are saved to your workspace.'}</Text>
+      </Stack>
+      <Paper withBorder p="md" className="schedule-roster">
+        <Stack gap="sm"><Group justify="space-between"><Text fw={700}>Team</Text><Badge color="gray" variant="light">{app.workers.length}</Badge></Group><TextInput placeholder="Find a worker…" aria-label="Find a worker" value={workerSearch} onChange={e => setWorkerSearch(e.currentTarget.value)} />
+          <div className="roster-list">{workers.map(w => <button type="button" className={'roster-worker ' + (selection?.kind === 'worker' && selection.id === w.id ? 'selected' : '')} key={w.id} disabled={!canEdit || w.status !== 'available' || busy} draggable={canEdit && w.status === 'available' && !busy}
+            onClick={() => setSelection({ kind: 'worker', id: w.id })}
+            onDragStart={e => { dragging.current = { kind: 'worker', id: w.id }; e.dataTransfer.setData('text/plain', w.id); e.dataTransfer.effectAllowed = 'copy' }}
+            onDragEnd={() => { dragging.current = null; setTarget('') }}>
+            <span className="roster-avatar">{w.name.slice(0, 2).toUpperCase()}</span><span><strong>{w.name}</strong><small>{w.status} · {weekAssignments.filter(a => a.workerId === w.id).length} shifts this week</small></span>
+          </button>)}</div>
+          {!workers.length && <Text size="sm" c="dimmed">No matching workers.</Text>}
+        </Stack>
+      </Paper>
+    </div>
+    <Modal opened={!!editor} onClose={() => { if (!busy) setEditor(null) }} title={editor?.id ? 'Assignment details' : 'Assign a worker'} centered>
+      {editor && <Stack>
+        <Text fw={600}>{app.stations.find(s => s.id === editor.stationId)?.name} · {dateLabel(fromDateKey(editor.date))}</Text>
+        {message && <Alert color="red">{message}</Alert>}
+        <Select label="Worker" searchable value={workerId} onChange={value => setWorkerId(value ?? '')} disabled={!canEdit || busy} data={app.workers.map(w => ({ value: w.id, label: w.name, disabled: w.id !== workerId && !!assignmentProblem(w, app.stations.find(s => s.id === editor.stationId), fromDateKey(editor.date), app.assignments, editor.id) }))} />
+        <Textarea label="Handover note" value={note} onChange={e => setNote(e.currentTarget.value)} readOnly={!canEdit} autosize minRows={3} maxLength={2000} />
+        {canEdit && <Group justify="space-between"><Button loading={busy} disabled={!workerId} onClick={() => void submit()}>Save assignment</Button>{editor.id && <Button variant="light" disabled={busy} onClick={() => { setSelection({ kind: 'assignment', id: editor.id! }); setEditor(null) }}>Move to another cell</Button>}</Group>}
+        {editor.id && canEdit && (confirmDelete ? <Alert color="red" title="Remove this assignment?"><Button color="red" loading={busy} onClick={() => { const a = app.assignments.find(a => a.id === editor.id); if (a) void save(() => app.removeAssignment(a)) }}>Confirm removal</Button></Alert> : <Button color="red" variant="subtle" onClick={() => setConfirmDelete(true)}>Remove assignment</Button>)}
+      </Stack>}
+    </Modal>
+  </Stack>
 }
-
-export default PlannerPage

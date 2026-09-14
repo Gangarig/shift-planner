@@ -3,25 +3,31 @@ import type { Station, NewStation } from '../../types/Station'
 import { Button, SegmentedControl, Stack, TextInput } from '@mantine/core'
 interface StationFormProps {
     stations: Station[],
-    onCreateStation:(value:NewStation)=>void
+    onCreateStation:(value:NewStation)=>Promise<boolean>
 }
 
 
 function StationForm({onCreateStation}:StationFormProps) {
+    const [saving,setSaving]=useState(false)
     const [stationsName,setStationName]=useState<string>('');
     const [stationStatus,setStationStatus]=useState<boolean>(true)
 
-    function handleSubmit (e:React.FormEvent) {
+    async function handleSubmit (e:React.FormEvent) {
         e.preventDefault()
-        if(stationsName === '') return null
+        if(!stationsName.trim()) return null
 
         const newStation :NewStation = {
-            name:stationsName,
+            name:stationsName.trim(),
             active:stationStatus 
         }
+        if (saving) return
+        setSaving(true)
+        const saved = await onCreateStation(newStation)
+        setSaving(false)
+        if (!saved) return
         setStationName('')
         setStationStatus(true)
-        onCreateStation(newStation);
+
     }
 
   return (
@@ -31,7 +37,7 @@ function StationForm({onCreateStation}:StationFormProps) {
         <SegmentedControl fullWidth value={stationStatus ? 'active' : 'inactive'}
           onChange={(value) => setStationStatus(value === 'active')}
           data={[{ label: 'Active', value: 'active' }, { label: 'Inactive', value: 'inactive' }]} />
-        <Button type="submit">Create station</Button>
+        <Button type="submit" loading={saving}>Create station</Button>
       </Stack>
     </form>
   )

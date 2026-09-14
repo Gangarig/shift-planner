@@ -12,7 +12,7 @@ import { useDisclosure } from '@mantine/hooks';
 import { Badge, Box, Button, Group, LoadingOverlay, Modal, Paper, SimpleGrid, Stack, Text, Title } from '@mantine/core';
 
 function StationsPage() {
-    const [selectedStation , setSelectedStation] = useState<Station | null>(null)
+    const [stationSelection , setSelectedStation] = useState<Station | null>(null)
     const [search,setSearch]=useState<string>('')
     const [createOpened, { open: openCreate, close: closeCreate }] = useDisclosure(false)
     const {
@@ -29,6 +29,7 @@ function StationsPage() {
         loadingStations,
         stationsError
     } = useApp()
+  const selectedStation = stations.find(s => s.id === stationSelection?.id) ?? null
   return (
         <Box pos="relative" className="page-container">
             <LoadingOverlay visible={loadingStations} loaderProps={{ children: 'Loading...' }} />
@@ -51,18 +52,18 @@ function StationsPage() {
                 </SimpleGrid>
               </Paper>
               <SimpleGrid cols={{ base: 1, md: selectedStation ? 2 : 1 }}>
-                {!stationsError && stations.length > 0 && stations.length === 0 && (
+                {!stationsError && stations.length > 0 && sortedStations.length === 0 && (
                 <Text>No stations match your search.</Text>
                 )}
                 <StationList stations={sortedStations} selectedStation={selectedStation} onSelectedStation={setSelectedStation} />
                 {selectedStation && <Stack>
                   <StationDetail assignments={assignments} selectedStation={selectedStation} onSelectedStation={setSelectedStation} />
-                  <StationEdit key={selectedStation.id} selectedStation={selectedStation} onUpdateStation={updateStation} onRemoveStation={removeStation} />
+                  <StationEdit key={JSON.stringify(selectedStation)} selectedStation={selectedStation} onUpdateStation={updateStation} onRemoveStation={removeStation} />
                 </Stack>}
               </SimpleGrid>
             </Stack>
             <Modal opened={createOpened} onClose={closeCreate} title="Add station" centered>
-              <StationForm stations={stations} onCreateStation={createStation} />
+              <StationForm stations={stations} onCreateStation={async station => { const ok = await createStation(station); if (ok) closeCreate(); return ok }} />
             </Modal>
         </Box>
   )

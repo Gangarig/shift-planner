@@ -7,13 +7,14 @@ import WorkerEdit from "../components/workers/WorkerEdit"
 import WorkerForm from "../components/workers/WorkerForm"
 import useApp from "../hooks/useApp"
 import type { Worker } from "../types/Worker"
+import PlannerWeekControls from "../components/planner/PlannerWeekControls"
 import Search from "../components/Search"
 import { useDisclosure } from '@mantine/hooks';
 import { Badge, Box, Button, Group, LoadingOverlay, Modal, Paper, SimpleGrid, Stack, Text, Title } from '@mantine/core';
 
 function WorkersPage() {
   const [search,setSearch]=useState<string>('')
-  const [selectedWorker,setSelectedWorker] = useState<Worker | null>(null)
+  const [workerSelection,setSelectedWorker] = useState<Worker | null>(null)
   const [createOpened, { open: openCreate, close: closeCreate }] = useDisclosure(false)
   const {
         sortedWorkers,
@@ -28,10 +29,9 @@ function WorkersPage() {
           loadingWorkers,
           workersError
       } = useApp()
-  function handleUpdateWorker(worker:Worker) {
-    updateWorker(worker);
-    setSelectedWorker(worker);
-    return
+  const selectedWorker = workers.find(w => w.id === workerSelection?.id) ?? null
+  async function handleUpdateWorker(worker:Worker) {
+    return await updateWorker(worker)
   }
   return (
     <Box pos="relative" className="page-container">
@@ -48,10 +48,12 @@ function WorkersPage() {
                   <Badge variant="light">{workers.length}</Badge>
                 </Group>
                 <Text c="dimmed">Manage your team, availability, and workload.</Text>
+                <Text size="sm" c="dimmed">Availability changes clear assignments only in the week selected below.</Text>
               </div>
               <Button onClick={openCreate}>Add worker</Button>
             </Group>
             <Paper withBorder p="md">
+              <PlannerWeekControls />
               <SimpleGrid cols={{ base: 1, sm: 2 }}>
                 <Search search={search} onSearch={setSearch}/>
                 <WorkerSort sortOrder={sortOrderWorker} onSort={setSortOrderWorker} />
@@ -68,7 +70,7 @@ function WorkersPage() {
                   <WorkerDetail worker={selectedWorker} setSelectedWorker={setSelectedWorker}
                     onRemoveWorker={removeWorker} onChangeOfStatus={handleUpdateWorker}
                     assignments={assignments} updateWorkerState={handleUpdateWorker} />
-                  <WorkerEdit key={selectedWorker.id} selectedWorker={selectedWorker} onUpdateWorker={updateWorker} />
+                  <WorkerEdit key={JSON.stringify(selectedWorker)} selectedWorker={selectedWorker} onUpdateWorker={updateWorker} />
                 </Stack>
               )}
             </SimpleGrid>
@@ -77,7 +79,7 @@ function WorkersPage() {
           <Modal opened={createOpened} onClose={closeCreate} title="Add worker" centered>
           <WorkerForm
           workers={workers}
-          onCreateWorker={createWorker}
+          onCreateWorker={async worker => { const ok = await createWorker(worker); if (ok) closeCreate(); return ok }}
           />
           </Modal>
         </Box>

@@ -29,20 +29,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let active = true
+    let version = 0
     const syncUser = async (nextUser: User | undefined) => {
+      const request = ++version
       try {
         const mappedUser = nextUser ? await mapUser(nextUser) : null
-        if (active) setUser(mappedUser)
+        if (active && request === version) setUser(mappedUser)
       } catch {
-        if (active) setUser(null)
+        if (active && request === version) setUser(null)
       } finally {
-        if (active) setLoading(false)
+        if (active && request === version) setLoading(false)
       }
     }
 
     supabase.auth.getSession().then(({ data }) => { void syncUser(data.session?.user) })
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      void syncUser(session?.user)
+      // Leave the Auth callback before starting a request that needs the session lock.
+      setTimeout(() => { if (active) void syncUser(session?.user) }, 0)
     })
     return () => { active = false; listener.subscription.unsubscribe() }
   }, [])

@@ -10,12 +10,13 @@ import {
   ThemeIcon,
   Title,
 } from '@mantine/core'
+import { toDateKey } from '../../lib/dateUtils'
 import useApp from '../../hooks/useApp'
 
 const statusColors = {
-  available: 'green',
-  sick: 'red',
-  holiday: 'orange',
+  available: 'blue',
+  sick: 'gray',
+  holiday: 'gray',
   inactive: 'gray',
 } as const
 
@@ -45,7 +46,9 @@ function MetricCard({ label, value, detail, symbol, color }: MetricCardProps) {
 }
 
 function Dashboard() {
-  const { workers, stations, assignments } = useApp()
+  const { workers, stations, assignments: allAssignments, weekDays } = useApp()
+  const dates = new Set(weekDays.map(d => toDateKey(d.date)))
+  const assignments = allAssignments.filter(a => dates.has(toDateKey(a.date)))
 
   const totals = workers.reduce(
     (sum, worker) => ({
@@ -88,11 +91,11 @@ function Dashboard() {
         <MetricCard label="Team members" value={workers.length}
           detail={`${workerCounts.available} available`} symbol="W" color="blue" />
         <MetricCard label="Active stations" value={activeStations}
-          detail={`${stations.length - activeStations} inactive`} symbol="S" color="green" />
+          detail={`${stations.length - activeStations} inactive`} symbol="S" color="gray" />
         <MetricCard label="Assignments" value={assignments.length}
           detail={`${workersWithoutAssignments.length} workers unassigned`} symbol="A" color="blue" />
         <MetricCard label="Overtime" value={totals.plusHours}
-          detail={`${totals.vacationDays} vacation days`} symbol="H" color="orange" />
+          detail={`${totals.vacationDays} vacation days`} symbol="H" color="gray" />
       </SimpleGrid>
 
       <SimpleGrid cols={{ base: 1, md: 2 }}>
