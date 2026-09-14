@@ -9,10 +9,18 @@ interface AuthContextValue { user: AuthUser | null; loading: boolean; signIn: (e
 const AuthContext = createContext<AuthContextValue | null>(null)
 const roles: AppRole[] = ['worker', 'manager', 'admin', 'owner']
 
-function mapUser(user: User): AuthUser {
-  const metadataRole = user.user_metadata?.role
-  const role = roles.includes(metadataRole) ? metadataRole : 'manager'
-  return { id: user.id, email: user.email ?? '', name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'Manager', role }
+async function mapUser(user: User): Promise<AuthUser> {
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('full_name, role')
+    .eq('id', user.id)
+    .single()
+
+  if (error) throw error
+
+  const role = roles.includes(profile.role) ? profile.role : 'worker'
+  const name = profile.full_name || user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User'
+  return { id: user.id, email: user.email ?? '', name, role }
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -21,14 +29,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let active = true
-    supabase.auth.getSession().then(({ data }) => {
-      if (!active) return
-      setUser(data.session?.user ? mapUser(data.session.user) : null)
-      setLoading(false)
-    })
+    const syncUser = async (nextUser: User | undefined) => {
+      try {
+        const mappedUser = nextUser ? await mapUser(nextUser) : null
+        if (active) setUser(mappedUser)
+      } catch {
+        if (active) setUser(null)
+      } finally {
+        if (active) setLoading(false)
+      }
+    }
+
+    supabase.auth.getSession().then(({ data }) => { void syncUser(data.session?.user) })
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ? mapUser(session.user) : null)
-      setLoading(false)
+      void syncUser(session?.user)
     })
     return () => { active = false; listener.subscription.unsubscribe() }
   }, [])
