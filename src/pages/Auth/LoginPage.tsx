@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Alert, Box, Button, Paper, PasswordInput, Stack, Text, TextInput, Title } from '@mantine/core'
-import { Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 function LoginPage() {
   const { user, loading, signIn } = useAuth()
@@ -17,6 +17,6 @@ function LoginPage() {
     catch (reason) { setError(reason instanceof Error ? reason.message : 'Login failed') }
     finally { setSubmitting(false) }
   }
-  return <Box mih="100vh" display="flex" style={{ alignItems: 'center', justifyContent: 'center' }} p="md"><Paper withBorder shadow="sm" p="xl" w="100%" maw={420}><form onSubmit={handleSubmit}><Stack><div><Title order={1}>Shift Planner</Title><Text c="dimmed" size="sm">Sign in with your company account.</Text></div>{error && <Alert color="red" title="Could not sign in">{error}</Alert>}<TextInput required type="email" label="Email" autoComplete="email" value={email} onChange={(event) => setEmail(event.currentTarget.value)} /><PasswordInput required label="Password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.currentTarget.value)} /><Button type="submit" loading={submitting}>Sign in</Button></Stack></form></Paper></Box>
+  return <Box mih="100vh" display="flex" style={{ alignItems: 'center', justifyContent: 'center' }} p="md"><Paper withBorder shadow="sm" p="xl" w="100%" maw={420}><form onSubmit={handleSubmit}><Stack><div><Title order={1}>Shift Planner</Title><Text c="dimmed" size="sm">Sign in with your company account.</Text></div>{error && <Alert color="red" title="Could not sign in">{error}</Alert>}<TextInput required type="email" label="Email" autoComplete="email" value={email} onChange={(event) => setEmail(event.currentTarget.value)} /><PasswordInput required label="Password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.currentTarget.value)} /><Button type="submit" loading={submitting}>Sign in</Button><Text ta="center" size="sm"><Link to="/forgot-password">Forgot password?</Link> · <Link to="/register">Create account</Link></Text></Stack></form></Paper></Box>
 }
 export default LoginPage
