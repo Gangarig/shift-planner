@@ -1,5 +1,6 @@
 import useWorker from "../hooks/useWorker"
 import { useState } from "react"
+import { useSearchParams } from "react-router-dom"
 import WorkerSort from "../components/workers/WorkerSort"
 import WorkerDetail from "../components/workers/WorkerDetail"
 import WorkerList from "../components/workers/WorkerList"
@@ -13,6 +14,7 @@ import { useDisclosure } from '@mantine/hooks';
 import { Badge, Box, Button, Group, LoadingOverlay, Modal, Paper, SimpleGrid, Stack, Text, Title } from '@mantine/core';
 
 function WorkersPage() {
+  const [searchParams, setSearchParams] = useSearchParams()
   const [search,setSearch]=useState<string>('')
   const [workerSelection,setSelectedWorker] = useState<Worker | null>(null)
   const [createOpened, { open: openCreate, close: closeCreate }] = useDisclosure(false)
@@ -34,7 +36,7 @@ function WorkersPage() {
           loadingWorkers,
           workersError
       } = useApp()
-  const selectedWorker = workers.find(w => w.id === workerSelection?.id) ?? null
+  const selectedWorker = workers.find(w => w.id === (workerSelection?.id ?? searchParams.get('worker'))) ?? null
   async function handleUpdateWorker(worker:Worker) {
     return await updateWorker(worker)
   }
@@ -69,10 +71,10 @@ function WorkersPage() {
               {!workersError && workers.length > 0 && sortedWorkers.length === 0 && (
                 <Text>No workers match your search.</Text>
               )} 
-              <WorkerList selectedWorker={selectedWorker} setSelectedWorker={setSelectedWorker} workers={sortedWorkers} stations={stations} onUpdateWorker={updateWorker} />
+              <WorkerList selectedWorker={selectedWorker} setSelectedWorker={(worker) => { setSelectedWorker(worker); if (worker) setSearchParams({ worker: worker.id }); else setSearchParams({}) }} workers={sortedWorkers} stations={stations} onUpdateWorker={updateWorker} />
               {selectedWorker && (
                 <Stack>
-                  <WorkerDetail worker={selectedWorker} setSelectedWorker={setSelectedWorker}
+                  <WorkerDetail worker={selectedWorker} setSelectedWorker={(worker) => { setSelectedWorker(worker); if (!worker) setSearchParams({}) }}
                     onRemoveWorker={removeWorker} onChangeOfStatus={handleUpdateWorker}
                     assignments={assignments} updateWorkerState={handleUpdateWorker} absences={absences} weekStart={monday} onCreateAbsence={createAbsence} onRemoveAbsence={removeAbsence} />
                   <WorkerEdit key={JSON.stringify(selectedWorker)} selectedWorker={selectedWorker} stations={stations} onUpdateWorker={updateWorker} />

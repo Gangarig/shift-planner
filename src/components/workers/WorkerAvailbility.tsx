@@ -3,11 +3,16 @@ import { Link } from 'react-router-dom'
 import useApp from '../../hooks/useApp'
 import { toDateKey } from '../../lib/dateUtils'
 import { austrianPublicHoliday } from '../../lib/austrianHolidays'
+import { useAuth } from '../../context/AuthContext'
+import { useNavigate } from 'react-router-dom'
 
 const statusColors = { available: 'green', late: 'orange', sick: 'red', holiday: 'yellow', inactive: 'gray' } as const
 
 function WorkerAvailability() {
   const { workers, assignments, stations, weekDays } = useApp()
+  const { user } = useAuth()
+  const navigate = useNavigate()
+  const canOpenWorkers = user?.role === 'owner' || user?.role === 'admin'
   const dates = new Set(weekDays.map(day => toDateKey(day.date)))
   const weekAssignments = assignments.filter(assignment => dates.has(toDateKey(assignment.date)))
   const dateLabel = (date: Date) => date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
@@ -36,11 +41,14 @@ function WorkerAvailability() {
           </tr>)}</tbody>
         </table>
       </div>
-      <Paper withBorder p="md" className="schedule-roster dashboard-roster">
+      <Paper withBorder p="xs" className="schedule-roster dashboard-roster">
         <Stack gap="sm"><Group justify="space-between"><Text fw={700}>Team</Text><Badge color="gray" variant="light">{workers.length}</Badge></Group>
           <div className="roster-list">{workers.map(worker => {
             const count = weekAssignments.filter(assignment => assignment.workerId === worker.id).length
-            return <div className="roster-worker dashboard-roster-worker" key={worker.id}><span className="roster-avatar">{worker.name.slice(0, 2).toUpperCase()}</span><span><strong>{worker.name}</strong><small>{worker.status} · {count} {count === 1 ? 'shift' : 'shifts'}</small></span><Badge ml="auto" size="xs" variant="dot" color={statusColors[worker.status]}>{worker.status}</Badge></div>
+            const content = <><span className="roster-avatar">{worker.name.slice(0, 2).toUpperCase()}</span><span><strong>{worker.name}</strong><small>{worker.status} · {count} {count === 1 ? 'shift' : 'shifts'}</small></span><Badge ml="auto" size="xs" variant="dot" color={statusColors[worker.status]}>{worker.status}</Badge></>
+            return canOpenWorkers
+              ? <button type="button" className="roster-worker dashboard-roster-worker dashboard-roster-link" key={worker.id} onClick={() => navigate(`/workers?worker=${worker.id}`)} aria-label={`Open ${worker.name}'s worker details`}>{content}</button>
+              : <div className="roster-worker dashboard-roster-worker" key={worker.id}>{content}</div>
           })}</div>
         </Stack>
       </Paper>

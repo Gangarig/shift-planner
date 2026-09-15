@@ -31,14 +31,14 @@ interface MetricCardProps {
 
 function MetricCard({ label, value, detail, symbol, color }: MetricCardProps) {
   return (
-    <Paper withBorder p="lg">
+    <Paper withBorder p="sm" className="metric-card">
       <Group justify="space-between" wrap="nowrap">
         <Stack gap={4}>
           <Text size="sm" c="dimmed">{label}</Text>
-          <Text fz={30} fw={700} lh={1}>{value}</Text>
+          <Text fz={24} fw={700} lh={1}>{value}</Text>
           <Text size="xs" c="dimmed">{detail}</Text>
         </Stack>
-        <ThemeIcon size={44} radius="md" color={color} variant="light">
+        <ThemeIcon size={36} radius="md" color={color} variant="light">
           <Text fw={800}>{symbol}</Text>
         </ThemeIcon>
       </Group>
@@ -82,7 +82,7 @@ function Dashboard() {
   const leastLoaded = [...rankedWorkers].sort((a, b) => a.count - b.count)[0]
 
   return (
-    <Stack gap="lg">
+    <Stack gap="sm" className="dashboard-summary">
       <div>
         <Title order={1}>Dashboard</Title>
         <Text c="dimmed">A quick look at this week's team and station coverage.</Text>
@@ -100,8 +100,8 @@ function Dashboard() {
       </SimpleGrid>
 
       <SimpleGrid cols={{ base: 1, md: 2 }}>
-        <Paper withBorder p="lg">
-          <Stack>
+        <Paper withBorder p="sm">
+          <Stack gap="xs">
             <div>
               <Text fw={700}>Team availability</Text>
               <Text size="sm" c="dimmed">Current status across the whole team</Text>
@@ -121,8 +121,8 @@ function Dashboard() {
           </Stack>
         </Paper>
 
-        <Paper withBorder p="lg">
-          <Stack>
+        <Paper withBorder p="sm">
+          <Stack gap="xs">
             <div>
               <Text fw={700}>Workload</Text>
               <Text size="sm" c="dimmed">Assignment balance for this week</Text>

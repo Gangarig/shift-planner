@@ -9,7 +9,7 @@ function WorkerCard({ worker, selectedWorker, onSelectWorker, stations, onUpdate
   const preferredStation = stations.find(station => station.id === worker.preferredStationId)
   const statuses: WorkerStatus[] = ['available', 'late', 'sick', 'holiday', 'inactive']
   const statusLabel = (status: WorkerStatus) => status === 'holiday' ? 'Vacation' : status[0].toUpperCase() + status.slice(1)
-  return <Paper withBorder p="md" radius="md" onClick={() => onSelectWorker(worker)} bg={isSelected ? 'var(--mantine-color-blue-light)' : undefined} style={{ cursor: 'pointer', textAlign: 'left', width: '100%', borderColor: isSelected ? 'var(--mantine-color-blue-6)' : undefined }}>
+  return <Paper withBorder p="xs" radius="md" onClick={() => onSelectWorker(worker)} bg={isSelected ? 'var(--mantine-color-blue-light)' : undefined} style={{ cursor: 'pointer', textAlign: 'left', width: '100%', borderColor: isSelected ? 'var(--mantine-color-blue-6)' : undefined }}>
     <Group wrap="nowrap">
       <Avatar color={colors[worker.status]}>{worker.name.slice(0, 2).toUpperCase()}</Avatar>
       <Stack gap={2} style={{ flex: 1, minWidth: 0 }}><Text fw={600} truncate>{worker.name}</Text><Text size="xs" c="dimmed" truncate>{preferredStation ? `Main: ${preferredStation.name}` : 'No main station'}</Text></Stack>

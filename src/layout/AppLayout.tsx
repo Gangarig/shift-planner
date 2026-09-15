@@ -10,8 +10,8 @@ function AppLayout() {
   const [opened, { toggle, close }] = useDisclosure();
   return (
     <AppShell
-      header={{ height: 68 }}
-      padding={{ base: 'sm', sm: 'lg' }}
+      header={{ height: 58 }}
+      padding={{ base: 'xs', sm: 'sm' }}
     >
       <AppShell.Header>
         <Group h="100%" px={{ base: 'md', sm: 'xl' }} justify="space-between" wrap="nowrap">

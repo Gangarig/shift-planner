@@ -6,7 +6,7 @@ import { Stack } from '@mantine/core'
 function DashBoardPage() {
     
   return (
-    <Stack gap="lg" className="page-container">
+    <Stack gap="sm" className="page-container dashboard-page">
       <Dashboard/>
       <WorkerAvailability/>
     </Stack>

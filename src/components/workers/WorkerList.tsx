@@ -15,8 +15,8 @@ function WorkerList({workers,selectedWorker,setSelectedWorker,stations,onUpdateW
     const notAvailableWorkers = workers.filter(worker => !['available', 'late'].includes(worker.status))
     
   return (
-    <Paper withBorder p="lg">
-      <Stack gap="xl">
+    <Paper withBorder p="sm">
+      <Stack gap="md">
         <StatusPanel title={'available'} workers={availableWorkers} selectedWorker={selectedWorker} onSelectWorker={setSelectedWorker} stations={stations} onUpdateWorker={onUpdateWorker} />
         <StatusPanel title={'not available'} workers={notAvailableWorkers} selectedWorker={selectedWorker} onSelectWorker={setSelectedWorker} stations={stations} onUpdateWorker={onUpdateWorker} />
         {workers.length === 0 && <Text c="dimmed" ta="center" py="xl">No workers found.</Text>}

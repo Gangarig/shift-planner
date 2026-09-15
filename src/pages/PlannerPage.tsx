@@ -124,7 +124,7 @@ export default function PlannerPage() {
   }
   const workingDays = days.filter(day => !austrianPublicHoliday(day.date))
   const coverage = app.stations.filter(s => s.active).length * workingDays.length
-  return <Stack className="page-container" gap="lg">
+  return <Stack className="page-container planner-page" gap="sm">
     <Group justify="space-between" className="planner-heading">
       <div><Text size="xs" tt="uppercase" fw={700} c="dimmed">Your workspace / Schedule</Text><Title order={1}>Weekly planner</Title><Text c="dimmed">{canEdit ? 'Choose a worker, then click an empty cell. Dragging works too.' : 'Your team schedule. Editing is available to managers.'}</Text></div>
       <Group className="planner-actions">{canEdit && <Button variant="filled" loading={busy} onClick={() => void save(async () => (await app.autoAssignPreferredWorkers()) !== null)}>Fill main stations</Button>}<Button variant="light" onClick={() => void shareWeeklyPlan()}>Share weekly plan</Button><Button variant="default" onClick={() => window.print()}>Print A4</Button><Badge variant="light" color="blue">{weekAssignments.length} scheduled · {Math.max(0, coverage - new Set(weekAssignments.filter(a => app.stations.find(s => s.id === a.stationId)?.active).map(a => `${a.stationId}-${toDateKey(a.date)}`)).size)} open</Badge></Group>
@@ -164,7 +164,7 @@ export default function PlannerPage() {
         {!stations.length && <Text c="dimmed" ta="center" p="xl">{loading ? 'Loading stations…' : 'No stations match. Add a station from the Stations page.'}</Text>}
         <Text className="planner-save-status" size="xs" c="dimmed" aria-live="polite">{busy ? 'Saving your changes…' : 'Stations can have several workers; each worker can only be assigned once per day.'}</Text>
       </Stack>
-      <Paper withBorder p="md" className="schedule-roster">
+      <Paper withBorder p="xs" className="schedule-roster">
         <Stack gap="sm"><Group justify="space-between"><Text fw={700}>Team</Text><Badge color="gray" variant="light">{app.workers.length}</Badge></Group><TextInput placeholder="Find a worker…" aria-label="Find a worker" value={workerSearch} onChange={e => setWorkerSearch(e.currentTarget.value)} />
           <div className="roster-list">{workers.map(w => <button type="button" className={'roster-worker ' + (selection?.kind === 'worker' && selection.id === w.id ? 'selected' : '')} key={w.id} disabled={!canEdit || !['available', 'late'].includes(w.status) || busy} draggable={canEdit && ['available', 'late'].includes(w.status) && !busy}
             onClick={() => setSelection({ kind: 'worker', id: w.id })}
