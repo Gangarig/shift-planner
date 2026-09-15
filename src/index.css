@@ -255,6 +255,12 @@ body {
 .roster-worker small { display: block; font-size: 11px; color: var(--mantine-color-dimmed); margin-top: 3px; }
 .roster-worker:disabled { opacity: .65; cursor: default; }
 .roster-worker.selected, .roster-worker:enabled:hover { background: var(--app-assignment); border-color: var(--app-border); }
+.dashboard-schedule-scroll { max-height: 520px; }
+.dashboard-schedule-cell { cursor: default; }
+.dashboard-roster { max-height: 520px; overflow: hidden; }
+.dashboard-roster .roster-list { max-height: 440px; }
+.dashboard-roster-worker { cursor: default; }
+.dashboard-roster-worker:hover { background: transparent; border-color: transparent; }
 .roster-avatar { display: grid; place-items: center; flex-shrink: 0; width: 33px; height: 33px; border-radius: 50%; background: var(--app-surface-soft); font-size: 11px; font-weight: 700; }
 .mantine-AppShell-header { background: var(--app-surface-raised); }
 .mantine-Title-root { letter-spacing: -.025em; }
