@@ -35,8 +35,8 @@ Deno.serve(async (req) => {
     if (authError || !authData.user) return response({ error: 'Your session is no longer valid' }, 401)
 
     const callerId = authData.user.id
-    const { data: caller, error: callerError } = await admin.from('profiles').select('role').eq('id', callerId).single()
-    if (callerError || caller?.role !== 'owner') return response({ error: 'Owner access is required' }, 403)
+    const { data: caller, error: callerError } = await admin.from('profiles').select('role, disabled_at').eq('id', callerId).single()
+    if (callerError || caller?.role !== 'owner' || caller.disabled_at) return response({ error: 'Active owner access is required' }, 403)
 
     const body = await req.json()
     const action = body?.action
@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
         if (data.users.length < 1000) break
         page += 1
       }
-      const { data: profiles, error: profilesError } = await admin.from('profiles').select('id, full_name, role, worker_id')
+      const { data: profiles, error: profilesError } = await admin.from('profiles').select('id, full_name, role, worker_id, disabled_at')
       if (profilesError) throw profilesError
       const byId = new Map((profiles ?? []).map((profile) => [profile.id, profile]))
       const now = Date.now()
@@ -63,7 +63,7 @@ Deno.serve(async (req) => {
           email: user.email ?? '',
           fullName: profile?.full_name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
           role: isRole(profile?.role) ? profile.role : 'worker',
-          status: banned ? 'disabled' : user.email_confirmed_at ? 'active' : 'invited',
+          status: banned || !!profile?.disabled_at ? 'disabled' : user.email_confirmed_at ? 'active' : 'invited',
           workerId: profile?.worker_id ?? null,
           createdAt: user.created_at,
         }
@@ -72,6 +72,10 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'invite') {
+      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
+      const { count, error: rateError } = await admin.from('security_audit_log').select('id', { count: 'exact', head: true }).eq('actor_id', callerId).eq('action', 'invite').gte('created_at', oneHourAgo)
+      if (rateError) throw rateError
+      if ((count ?? 0) >= 10) return response({ error: 'Invitation limit reached. Try again in one hour.' }, 429)
       const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : ''
       const fullName = typeof body.fullName === 'string' ? body.fullName.trim() : ''
       const role = body.role
@@ -86,6 +90,7 @@ Deno.serve(async (req) => {
       if (metadataError) throw metadataError
       const { error: profileError } = await admin.from('profiles').upsert({ id: userId, full_name: fullName, role, worker_id: workerId })
       if (profileError) throw profileError
+      await admin.from('security_audit_log').insert({ actor_id: callerId, action: 'invite', entity_type: 'profile', entity_id: userId })
       return response({ member: { id: userId, email, fullName, role, status: 'invited', workerId, createdAt: data.user.created_at } }, 201)
     }
 
@@ -103,13 +108,17 @@ Deno.serve(async (req) => {
       if (metadataError) throw metadataError
       const { data: profile, error: profileError } = await admin.from('profiles').update({ role, worker_id: workerId }).eq('id', userId).select('id').single()
       if (profileError || !profile) throw profileError ?? new Error('Profile was not found')
+      await admin.from('security_audit_log').insert({ actor_id: callerId, action: 'access_update', entity_type: 'profile', entity_id: userId })
       return response({ success: true })
     }
 
     if (action === 'set-disabled') {
       if (typeof body.disabled !== 'boolean') return response({ error: 'Disabled state is required' }, 400)
+      const { error: profileError } = await admin.from('profiles').update({ disabled_at: body.disabled ? new Date().toISOString() : null }).eq('id', userId)
+      if (profileError) throw profileError
       const { error } = await admin.auth.admin.updateUserById(userId, { ban_duration: body.disabled ? '876000h' : 'none' })
       if (error) throw error
+      await admin.from('security_audit_log').insert({ actor_id: callerId, action: body.disabled ? 'disable' : 'restore', entity_type: 'profile', entity_id: userId })
       return response({ success: true })
     }
 
@@ -119,6 +128,7 @@ Deno.serve(async (req) => {
       if (data.user.email_confirmed_at) return response({ error: 'Only pending invitations can be cancelled' }, 400)
       const { error } = await admin.auth.admin.deleteUser(userId)
       if (error) throw error
+      await admin.from('security_audit_log').insert({ actor_id: callerId, action: 'cancel_invitation', entity_type: 'profile', entity_id: userId })
       return response({ success: true })
     }
 

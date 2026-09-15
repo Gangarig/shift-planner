@@ -12,6 +12,12 @@ This release keeps the existing dashboard, planner, workers, stations, and setti
 - [x] Access: owner-only invitations, trusted role changes, disabling, and pending-invitation cancellation.
 - [x] Accounts: optional link between a login account and a scheduling worker record.
 - [x] Database grants: remove inherited table-level TRUNCATE and retain only required operations.
+- [x] RLS: remove overlapping permissive policies and separate insert, update, and delete authorization.
+- [x] Account blocking: disabled accounts lose database access immediately.
+- [x] Auditability: protect and record planner and access-management security events.
+- [x] Abuse protection: limit owner invitations to 10 per hour.
+- [x] Browser policy: restrict scripts, connections, forms, and referrer information.
+- [x] Dependencies: patch the React Router security advisory and verify zero production audit findings.
 - [x] Design: neutral surfaces, readable text, one blue accent, restrained status colors.
 - [x] Demo data: remove unused mock modules; provide explicitly labeled database sample workers.
 - [x] Verification: build, lint, scheduling/date tests, database permission checks.

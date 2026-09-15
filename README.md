@@ -37,6 +37,16 @@ In hosted Supabase Auth, allow the actual app origin with `/login` and `/reset-p
 
 Invitations are sent by the protected `manage-team` Edge Function. Supabase administrative credentials stay server-side and are never included in the React bundle.
 
+## Security
+
+- Row Level Security is enabled on every public table.
+- Read and write policies are separated by operation and use trusted profile roles.
+- Disabled accounts lose database access immediately, even before an older access token expires.
+- Worker, station, assignment, invitation, and access-management changes are recorded in a protected audit log.
+- Owners can send at most 10 invitations per hour.
+- The deployed page includes a restrictive content security policy and no-referrer policy.
+- Production dependencies are checked with `npm audit`; the current audit reports zero vulnerabilities.
+
 ## Hosted demo
 
 GitHub Actions deploys `main` to `https://gangarig.github.io/shift-planner/`.
