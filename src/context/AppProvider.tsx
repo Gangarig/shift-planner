@@ -156,7 +156,7 @@ function AppProvider() {
 
   async function handleUpdateWorker(worker: Worker) {
     const selectedWeek = new Set(weekDays.map((day) => toDateKey(day.date)))
-    const workerAssignments = worker.status === 'available' || workers.find(w => w.id === worker.id)?.status === worker.status ? [] : assignments.filter((assignment) => assignment.workerId === worker.id && selectedWeek.has(toDateKey(assignment.date)))
+    const workerAssignments = ['available', 'late'].includes(worker.status) || workers.find(w => w.id === worker.id)?.status === worker.status ? [] : assignments.filter((assignment) => assignment.workerId === worker.id && selectedWeek.has(toDateKey(assignment.date)))
     try {
       setWorkersError(null)
       const { error } = await supabase.rpc('update_worker_for_week', { worker_record: worker, week_start: toDateKey(monday) })

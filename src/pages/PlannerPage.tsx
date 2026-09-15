@@ -156,7 +156,7 @@ export default function PlannerPage() {
       </Stack>
       <Paper withBorder p="md" className="schedule-roster">
         <Stack gap="sm"><Group justify="space-between"><Text fw={700}>Team</Text><Badge color="gray" variant="light">{app.workers.length}</Badge></Group><TextInput placeholder="Find a worker…" aria-label="Find a worker" value={workerSearch} onChange={e => setWorkerSearch(e.currentTarget.value)} />
-          <div className="roster-list">{workers.map(w => <button type="button" className={'roster-worker ' + (selection?.kind === 'worker' && selection.id === w.id ? 'selected' : '')} key={w.id} disabled={!canEdit || w.status !== 'available' || busy} draggable={canEdit && w.status === 'available' && !busy}
+          <div className="roster-list">{workers.map(w => <button type="button" className={'roster-worker ' + (selection?.kind === 'worker' && selection.id === w.id ? 'selected' : '')} key={w.id} disabled={!canEdit || !['available', 'late'].includes(w.status) || busy} draggable={canEdit && ['available', 'late'].includes(w.status) && !busy}
             onClick={() => setSelection({ kind: 'worker', id: w.id })}
             onDragStart={e => { dragging.current = { kind: 'worker', id: w.id }; e.dataTransfer.setData('text/plain', w.id); e.dataTransfer.effectAllowed = 'copy' }}
             onDragEnd={() => { dragging.current = null; setTarget('') }}>

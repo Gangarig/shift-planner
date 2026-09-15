@@ -27,8 +27,8 @@ function WorkerDetail({ worker, onRemoveWorker, setSelectedWorker, assignments, 
   const assignmentCount = assignments.filter((assignment) => assignment.workerId === worker.id).length
   return <Paper withBorder p="lg"><Stack>
     <Group justify="space-between"><div><Title order={3}>{worker.name}</Title><Text size="sm" c="dimmed">{worker.email}</Text></div><Badge variant="light">{worker.role}</Badge></Group>
-    <Select label="Availability" value={worker.status} data={['available', 'sick', 'holiday', 'inactive']} onChange={(value) => onChangeOfStatus({ ...worker, status: (value ?? 'available') as WorkerStatus })} />
-    {worker.status !== 'available' && <Text size="sm" c="orange">Changing this worker to unavailable removes their assignments from the selected week.</Text>}
+    <Select label="Availability" value={worker.status} data={['available', 'late', 'sick', 'holiday', 'inactive']} onChange={(value) => onChangeOfStatus({ ...worker, status: (value ?? 'available') as WorkerStatus })} />
+    {!['available', 'late'].includes(worker.status) && <Text size="sm" c="orange">Changing this worker to unavailable removes their assignments from the selected week.</Text>}
     <SimpleGrid cols={3}><div><Text size="xs" c="dimmed">Assignments</Text><Text fw={700}>{assignmentCount}</Text></div><div><Text size="xs" c="dimmed">Vacation days</Text><Text fw={700}>{worker.vacationDays ?? 0}</Text></div><div><Text size="xs" c="dimmed">Overtime</Text><Text fw={700}>{worker.plusHours ?? 0}h</Text></div></SimpleGrid>
     <Divider />
     <NumberInput label="Adjust vacation days" min={1} value={vacationDays} onChange={(value) => setVacationDays(String(value))} /><Group grow><Button variant="light" onClick={() => updateNumber('vacationDays', vacationDays, 'add')}>Add</Button><Button variant="light" color="gray" onClick={() => updateNumber('vacationDays', vacationDays, 'remove')}>Remove</Button></Group>

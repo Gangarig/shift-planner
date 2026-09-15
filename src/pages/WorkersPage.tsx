@@ -65,7 +65,7 @@ function WorkersPage() {
               {!workersError && workers.length > 0 && sortedWorkers.length === 0 && (
                 <Text>No workers match your search.</Text>
               )} 
-              <WorkerList selectedWorker={selectedWorker} setSelectedWorker={setSelectedWorker} workers={sortedWorkers} />
+              <WorkerList selectedWorker={selectedWorker} setSelectedWorker={setSelectedWorker} workers={sortedWorkers} stations={stations} onUpdateWorker={updateWorker} />
               {selectedWorker && (
                 <Stack>
                   <WorkerDetail worker={selectedWorker} setSelectedWorker={setSelectedWorker}

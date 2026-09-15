@@ -15,6 +15,7 @@ import useApp from '../../hooks/useApp'
 
 const statusColors = {
   available: 'blue',
+  late: 'orange',
   sick: 'gray',
   holiday: 'gray',
   inactive: 'gray',
@@ -63,7 +64,7 @@ function Dashboard() {
       sum[worker.status] += 1
       return sum
     },
-    { available: 0, sick: 0, holiday: 0, inactive: 0 },
+    { available: 0, late: 0, sick: 0, holiday: 0, inactive: 0 },
   )
 
   const activeStations = stations.filter((station) => station.active).length
@@ -89,7 +90,7 @@ function Dashboard() {
 
       <SimpleGrid cols={{ base: 1, xs: 2, lg: 4 }}>
         <MetricCard label="Team members" value={workers.length}
-          detail={`${workerCounts.available} available`} symbol="W" color="blue" />
+          detail={`${workerCounts.available + workerCounts.late} working`} symbol="W" color="blue" />
         <MetricCard label="Active stations" value={activeStations}
           detail={`${stations.length - activeStations} inactive`} symbol="S" color="gray" />
         <MetricCard label="Assignments" value={assignments.length}

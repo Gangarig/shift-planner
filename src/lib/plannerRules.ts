@@ -9,7 +9,7 @@ export function assignmentProblem(worker: Worker | undefined, station: Station |
   if (!Number.isFinite(date.getTime())) return 'Choose a valid date.'
   const holiday = austrianPublicHoliday(date)
   if (holiday) return `${holiday} is a public holiday. The workplace is closed.`
-  if (worker.status !== 'available') return 'This worker is currently unavailable.'
+  if (!['available', 'late'].includes(worker.status)) return 'This worker is currently unavailable.'
   if (!station.active) return 'This station is inactive.'
   const day = toDateKey(date)
   if (assignments.some(a => a.id !== ignoreId && a.workerId === worker.id && toDateKey(a.date) === day)) return 'This worker already has an assignment on this day.'

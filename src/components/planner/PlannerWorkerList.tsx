@@ -7,12 +7,12 @@ interface PlannerWorkerListProps {
   assignments: Assignment[]
 }
 
-const statusColors: Record<WorkerStatus, string> = { available: 'blue', sick: 'gray', holiday: 'gray', inactive: 'gray' }
+const statusColors: Record<WorkerStatus, string> = { available: 'blue', late: 'orange', sick: 'gray', holiday: 'gray', inactive: 'gray' }
 const unavailableStatuses: WorkerStatus[] = ['sick', 'holiday', 'inactive']
 
 function PlannerWorkerList({ workers, assignments }: PlannerWorkerListProps) {
-  const availableWorkers = workers.filter((worker) => worker.status === 'available').sort((a, b) => a.name.localeCompare(b.name))
-  const unavailableWorkers = workers.filter((worker) => worker.status !== 'available').sort((a, b) => a.name.localeCompare(b.name))
+  const availableWorkers = workers.filter((worker) => ['available', 'late'].includes(worker.status)).sort((a, b) => a.name.localeCompare(b.name))
+  const unavailableWorkers = workers.filter((worker) => !['available', 'late'].includes(worker.status)).sort((a, b) => a.name.localeCompare(b.name))
 
   function workerCard(worker: Worker, draggable: boolean) {
     const shiftCount = assignments.filter((assignment) => assignment.workerId === worker.id).length

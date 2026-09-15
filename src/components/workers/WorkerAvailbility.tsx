@@ -4,7 +4,7 @@ import useApp from '../../hooks/useApp'
 import { toDateKey } from '../../lib/dateUtils'
 import { austrianPublicHoliday } from '../../lib/austrianHolidays'
 
-const statusColors = { available: 'green', sick: 'red', holiday: 'orange', inactive: 'gray' } as const
+const statusColors = { available: 'green', late: 'orange', sick: 'red', holiday: 'yellow', inactive: 'gray' } as const
 
 function WorkerAvailability() {
   const { workers, assignments, stations, weekDays } = useApp()
@@ -30,9 +30,8 @@ function WorkerAvailability() {
               const date = toDateKey(day.date)
               const holiday = austrianPublicHoliday(day.date)
               if (holiday) return <td key={date} className="holiday-cell" aria-label={`${station.name}, ${date}, closed for ${holiday}`} />
-              const assignment = weekAssignments.find(item => item.stationId === station.id && toDateKey(item.date) === date)
-              const worker = workers.find(item => item.id === assignment?.workerId)
-              return <td key={date}><div className={`schedule-cell dashboard-schedule-cell ${assignment ? 'filled' : 'empty'}`}>{assignment ? <><strong>{worker?.name ?? 'Unknown worker'}</strong><span>{assignment.note || 'Assigned'}</span></> : <span>{station.active ? 'Open' : '—'}</span>}</div></td>
+              const cellAssignments = weekAssignments.filter(item => item.stationId === station.id && toDateKey(item.date) === date)
+              return <td key={date}><div className={`schedule-cell dashboard-schedule-cell ${cellAssignments.length ? 'filled' : 'empty'}`}>{cellAssignments.length ? cellAssignments.map(assignment => <div className="cell-assignment" key={assignment.id}><strong>{workers.find(item => item.id === assignment.workerId)?.name ?? 'Unknown worker'}</strong>{assignment.note && <span>{assignment.note}</span>}</div>) : <span>{station.active ? 'Open' : '—'}</span>}</div></td>
             })}
           </tr>)}</tbody>
         </table>
