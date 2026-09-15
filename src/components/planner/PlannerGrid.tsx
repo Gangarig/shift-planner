@@ -29,8 +29,8 @@ function PlannerGrid({ stations, workers, assignments, onCreateAssignment, onUpd
         const assignment = assignments.find((item) => item.stationId === station.id && toDateKey(item.date) === toDateKey(day.date)) ?? null
         const worker = assignment ? workers.find((item) => item.id === assignment.workerId) ?? null : null
         return <GridCell key={`${station.id}-${toDateKey(day.date)}`} station={station} date={day.date} worker={worker} assignment={assignment} canAssignWorker={canAssignWorker}
-          onCreateAssignment={(workerId, stationId, date) => onCreateAssignment({ workerId, stationId, date, note: null })}
-          onMoveAssignment={(value, stationId, date) => onUpdateAssignment({ ...value, stationId, date })}
+          onCreateAssignment={(workerId, stationId, date) => onCreateAssignment({ workerId, stationId, date, note: null, source: 'manual' })}
+          onMoveAssignment={(value, stationId, date) => onUpdateAssignment({ ...value, stationId, date, source: 'manual' })}
           onRemoveAssignment={onRemoveAssignment} onSelectAssignment={onSelectAssignment} />
       })}
     </div>)}

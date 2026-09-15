@@ -28,10 +28,16 @@ function AppProvider() {
   const [selectedWeekDate, setSelectedWeekDate] = useState(new Date())
   const monday = getMondayOfWeek(selectedWeekDate)
   const weekDays = getWeekDays(monday)
+  const weekStart = toDateKey(monday)
+  const weekEnd = toDateKey(weekDays[4].date)
 
   useEffect(() => {
-    void Promise.all([refreshWorkers(), refreshStations(), refreshAssignments(), refreshDailyNotes()])
+    void Promise.all([refreshWorkers(), refreshStations()])
   }, [])
+
+  // The date key is the deliberate refresh boundary; both loaders read this render's week.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { void Promise.all([refreshAssignments(), refreshDailyNotes()]) }, [weekStart])
 
   async function refreshWorkers() {
     try {
@@ -58,7 +64,7 @@ function AppProvider() {
   async function refreshAssignments() {
     try {
       setLoadingAssignments(true); setAssignmentsError(null)
-      setAssignments(await loadAssignments())
+      setAssignments(await loadAssignments(weekStart, weekEnd))
     } catch (error) {
       setAssignmentsError('Could not load assignments')
       notifications.show({ color: 'red', title: 'Assignment loading failed', message: errorMessage(error) })
@@ -67,7 +73,7 @@ function AppProvider() {
   }
 
   async function refreshDailyNotes() {
-    try { setDailyNotes(await loadDailyNotes()) }
+    try { setDailyNotes(await loadDailyNotes(weekStart, weekEnd)) }
     catch (error) { notifications.show({ color: 'red', title: 'Daily notes failed', message: errorMessage(error) }) }
   }
 

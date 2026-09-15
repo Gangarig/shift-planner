@@ -3,6 +3,10 @@ import { createClient } from 'npm:@supabase/supabase-js@2.108.2'
 
 const roles = ['worker', 'manager', 'admin', 'owner'] as const
 type AppRole = typeof roles[number]
+const allowedInvitationRedirects = new Set([
+  'https://gangarig.github.io/shift-planner/reset-password?invite=1',
+  'http://localhost:5173/reset-password?invite=1',
+])
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -80,16 +84,15 @@ Deno.serve(async (req) => {
       const fullName = typeof body.fullName === 'string' ? body.fullName.trim() : ''
       const role = body.role
       const workerId = typeof body.workerId === 'string' && body.workerId ? body.workerId : null
-      const redirectTo = typeof body.redirectTo === 'string' ? body.redirectTo : undefined
+      const redirectTo = typeof body.redirectTo === 'string' && allowedInvitationRedirects.has(body.redirectTo) ? body.redirectTo : undefined
       if (!email || !fullName || !isRole(role)) return response({ error: 'Email, name, and a valid role are required' }, 400)
+      if (!redirectTo) return response({ error: 'The invitation return address is not allowed' }, 400)
 
       const { data, error } = await admin.auth.admin.inviteUserByEmail(email, { data: { full_name: fullName }, redirectTo })
       if (error) throw error
       const userId = data.user.id
-      const { error: metadataError } = await admin.auth.admin.updateUserById(userId, { app_metadata: { ...data.user.app_metadata, role } })
-      if (metadataError) throw metadataError
       const { error: profileError } = await admin.from('profiles').upsert({ id: userId, full_name: fullName, role, worker_id: workerId })
-      if (profileError) throw profileError
+      if (profileError) { await admin.auth.admin.deleteUser(userId); throw profileError }
       await admin.from('security_audit_log').insert({ actor_id: callerId, action: 'invite', entity_type: 'profile', entity_id: userId })
       return response({ member: { id: userId, email, fullName, role, status: 'invited', workerId, createdAt: data.user.created_at } }, 201)
     }
@@ -102,10 +105,6 @@ Deno.serve(async (req) => {
       const role = body.role
       const workerId = typeof body.workerId === 'string' && body.workerId ? body.workerId : null
       if (!isRole(role)) return response({ error: 'Choose a valid role' }, 400)
-      const { data: target, error: targetError } = await admin.auth.admin.getUserById(userId)
-      if (targetError) throw targetError
-      const { error: metadataError } = await admin.auth.admin.updateUserById(userId, { app_metadata: { ...target.user.app_metadata, role } })
-      if (metadataError) throw metadataError
       const { data: profile, error: profileError } = await admin.from('profiles').update({ role, worker_id: workerId }).eq('id', userId).select('id').single()
       if (profileError || !profile) throw profileError ?? new Error('Profile was not found')
       await admin.from('security_audit_log').insert({ actor_id: callerId, action: 'access_update', entity_type: 'profile', entity_id: userId })

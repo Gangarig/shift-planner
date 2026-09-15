@@ -89,7 +89,7 @@ export default function PlannerPage() {
     const id = assignment?.workerId ?? picked.id
     const problem = assignmentProblem(app.workers.find(w => w.id === id), app.stations.find(s => s.id === stationId), date, app.assignments, assignment?.id)
     if (problem) { setMessage(problem); return }
-    await save(() => assignment ? app.updateAssignment({ ...assignment, stationId, date }) : app.createAssignment({ workerId: id, stationId, date, note: null }))
+    await save(() => assignment ? app.updateAssignment({ ...assignment, stationId, date, source: 'manual' }) : app.createAssignment({ workerId: id, stationId, date, note: null, source: 'manual' }))
   }
   function openCell(stationId: string, date: Date, assignment?: Assignment) {
     if (selection && !assignment) { void place(stationId, date); return }
@@ -105,7 +105,7 @@ export default function PlannerPage() {
     const noteOnly = existing && existing.workerId === workerId
     const problem = noteOnly ? null : assignmentProblem(app.workers.find(w => w.id === workerId), app.stations.find(s => s.id === editor.stationId), date, app.assignments, editor.id)
     if (problem) { setMessage(problem); return }
-    const value = { workerId, stationId: editor.stationId, date, note: note.trim() || null }
+    const value = { workerId, stationId: editor.stationId, date, note: note.trim() || null, source: existing && existing.workerId === workerId ? existing.source : 'manual' as const }
     await save(() => editor.id ? app.updateAssignment({ ...value, id: editor.id }) : app.createAssignment(value))
   }
   function shiftWeek(offset: number) {

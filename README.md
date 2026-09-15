@@ -11,7 +11,7 @@ ShiftPlanner is a weekly staff-planning demo built with React, TypeScript, Vite,
 
 ## Database
 
-The schema is recorded in `supabase/migrations`. It provides workers, stations, weekly assignments, Auth-backed role profiles, Row Level Security, database-level double-booking prevention, and unavailable-worker protection.
+The schema is recorded in `supabase/migrations`. It provides workers, stations, daily notes, multiple workers per station, preferred-station defaults, Auth-backed role profiles, Row Level Security, database-level worker double-booking prevention, and unavailable-worker protection.
 
 Signed-in users can view the planner. Managers, admins, and owners can manage workers, stations, and assignments. Owners can invite accounts, change roles, disable access, cancel pending invitations, and optionally link a login to a worker record.
 
@@ -23,7 +23,7 @@ npm run lint
 npm run build
 ```
 ## Planner
-Select a worker and click an empty cell, or drag a worker onto the grid. Click an assignment to edit its note, move it, or confirm removal. Use the week controls, station/worker search, and density switch to adjust your view. The first column and date header remain visible when scrolling.
+Select a worker and click a cell, or drag a worker onto the grid. A station can contain multiple workers. Click an assignment to edit its note, move it, or confirm removal. Main-station assignments are created automatically and become manual overrides when moved. Use the week controls, station/worker search, and density switch to adjust your view. The first column and date header remain visible when scrolling.
 
 Austria's 13 nationwide statutory public holidays are automatically marked closed. Their planner cells remain blank, they are excluded from capacity totals, and assignments are rejected in both the interface and database. Fixed and Easter-based holidays are calculated for any year.
 
@@ -52,4 +52,4 @@ Invitations are sent by the protected `manage-team` Edge Function. Supabase admi
 GitHub Actions deploys `main` to `https://gangarig.github.io/shift-planner/`.
 
 ## Scope and verification
-See PRODUCT_CHECKLIST.md for this release's completed checklist and remaining production work. This is a single-company MVP. Invitation email delivery and a signed-in phone walkthrough still require manual confirmation.
+See PRODUCT_CHECKLIST.md for completed product behavior and MARKET_READINESS.md for the production launch gates. This is a single-company MVP. Invitation email delivery and a signed-in phone walkthrough still require manual confirmation.

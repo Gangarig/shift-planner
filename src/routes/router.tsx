@@ -1,17 +1,21 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createBrowserRouter } from 'react-router-dom'
+import { lazy } from 'react'
 import AppLayout from '../layout/AppLayout'
-import PlannerPage from '../pages/PlannerPage'
-import DashboardPage from '../pages/DashboardPage'
-import WorkersPage from '../pages/WorkersPage'
-import StationsPage from '../pages/StationsPage'
-import SettingsPage from '../pages/SettingsPage'
-import LoginPage from '../pages/Auth/LoginPage'
-import ForgotPasswordPage from '../pages/Auth/ForgotPasswordPage'
-import ResetPasswordPage from '../pages/Auth/ResetPasswordPage'
-import TeamAccessPage from '../pages/TeamAccessPage'
 import ProtectedRoute from '../components/layout/ProtectedRoute'
-import Unauthorized from '../pages/Unauthorized'
 import AppProvider from '../context/AppProvider'
+
+const PlannerPage = lazy(() => import('../pages/PlannerPage'))
+const DashboardPage = lazy(() => import('../pages/DashboardPage'))
+const WorkersPage = lazy(() => import('../pages/WorkersPage'))
+const StationsPage = lazy(() => import('../pages/StationsPage'))
+const SettingsPage = lazy(() => import('../pages/SettingsPage'))
+const LoginPage = lazy(() => import('../pages/Auth/LoginPage'))
+const ForgotPasswordPage = lazy(() => import('../pages/Auth/ForgotPasswordPage'))
+const ResetPasswordPage = lazy(() => import('../pages/Auth/ResetPasswordPage'))
+const TeamAccessPage = lazy(() => import('../pages/TeamAccessPage'))
+const Unauthorized = lazy(() => import('../pages/Unauthorized'))
+const NotFoundPage = lazy(() => import('../pages/NotFoundPage'))
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
@@ -28,6 +32,7 @@ export const router = createBrowserRouter([
         { element: <ProtectedRoute allowedRoles={['admin', 'owner']} />, children: [{ path: 'settings', element: <SettingsPage /> }] },
         { element: <ProtectedRoute allowedRoles={['owner']} />, children: [{ path: 'team', element: <TeamAccessPage /> }] },
         { path: 'unauthorized', element: <Unauthorized /> },
+        { path: '*', element: <NotFoundPage /> },
       ] },
     ] },
   ] },

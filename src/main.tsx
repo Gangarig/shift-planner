@@ -6,6 +6,7 @@ import '@mantine/notifications/styles.css';
 import { createTheme, MantineProvider } from '@mantine/core'
 import { Notifications } from '@mantine/notifications'
 import './index.css'
+import AppErrorBoundary from './components/AppErrorBoundary.tsx'
 
 const theme = createTheme({
   primaryColor: 'blue',
@@ -19,7 +20,7 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <MantineProvider theme={theme} defaultColorScheme="light">
       <Notifications position="top-right" />
-      <App />
+      <AppErrorBoundary><App /></AppErrorBoundary>
     </MantineProvider>
   </StrictMode>,
 )

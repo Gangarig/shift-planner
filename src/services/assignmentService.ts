@@ -21,12 +21,15 @@ export async function removeAssignment(assignment: Assignment) {
 }
 
 export async function updateAssignment(assignment: Assignment) {
-  const { error } = await supabase.from('assignments').update({ workerId: assignment.workerId, stationId: assignment.stationId, date: toDateKey(assignment.date), note: assignment.note }).eq('id', assignment.id).select('id').single()
+  const { error } = await supabase.from('assignments').update({ workerId: assignment.workerId, stationId: assignment.stationId, date: toDateKey(assignment.date), note: assignment.note, source: assignment.source ?? 'manual' }).eq('id', assignment.id).select('id').single()
   if (error) throw error
 }
 
-export async function loadAssignments() {
-  const { data, error } = await supabase.from('assignments').select('*')
+export async function loadAssignments(from?: string, to?: string) {
+  let query = supabase.from('assignments').select('*')
+  if (from) query = query.gte('date', from)
+  if (to) query = query.lte('date', to)
+  const { data, error } = await query.order('date')
   if (error) throw error
   return (data ?? []).map((record) => toAssignment(record as Assignment))
 }

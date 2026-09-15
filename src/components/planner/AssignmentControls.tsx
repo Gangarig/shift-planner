@@ -27,7 +27,7 @@ function AssignmentControls({ stations, workers, assignments, onCreateAssignment
     const date = fromDateKey(selectedDate)
     const isWorkerTaken = assignments.some((item) => item.workerId === worker.id && toDateKey(item.date) === selectedDate)
     if (isWorkerTaken) return
-    const saved = await onCreateAssignment({ workerId: worker.id, stationId: station.id, date, note: note.trim() || null })
+    const saved = await onCreateAssignment({ workerId: worker.id, stationId: station.id, date, note: note.trim() || null, source: 'manual' })
     if (saved) onCreated?.()
   }
 
