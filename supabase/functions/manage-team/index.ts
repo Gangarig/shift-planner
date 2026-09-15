@@ -1,0 +1,130 @@
+import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
+import { createClient } from 'npm:@supabase/supabase-js@2.108.2'
+
+const roles = ['worker', 'manager', 'admin', 'owner'] as const
+type AppRole = typeof roles[number]
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+}
+
+function response(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+}
+
+function isRole(value: unknown): value is AppRole {
+  return typeof value === 'string' && roles.includes(value as AppRole)
+}
+
+Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+  if (req.method !== 'POST') return response({ error: 'Method not allowed' }, 405)
+
+  try {
+    const url = Deno.env.get('SUPABASE_URL')
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+    if (!url || !serviceKey) return response({ error: 'Server configuration is incomplete' }, 500)
+
+    const token = req.headers.get('Authorization')?.replace(/^Bearer\s+/i, '')
+    if (!token) return response({ error: 'Sign in is required' }, 401)
+
+    const admin = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } })
+    const { data: authData, error: authError } = await admin.auth.getUser(token)
+    if (authError || !authData.user) return response({ error: 'Your session is no longer valid' }, 401)
+
+    const callerId = authData.user.id
+    const { data: caller, error: callerError } = await admin.from('profiles').select('role').eq('id', callerId).single()
+    if (callerError || caller?.role !== 'owner') return response({ error: 'Owner access is required' }, 403)
+
+    const body = await req.json()
+    const action = body?.action
+
+    if (action === 'list') {
+      const users = []
+      let page = 1
+      while (true) {
+        const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 1000 })
+        if (error) throw error
+        users.push(...data.users)
+        if (data.users.length < 1000) break
+        page += 1
+      }
+      const { data: profiles, error: profilesError } = await admin.from('profiles').select('id, full_name, role, worker_id')
+      if (profilesError) throw profilesError
+      const byId = new Map((profiles ?? []).map((profile) => [profile.id, profile]))
+      const now = Date.now()
+      const members = users.map((user) => {
+        const profile = byId.get(user.id)
+        const banned = user.banned_until ? new Date(user.banned_until).getTime() > now : false
+        return {
+          id: user.id,
+          email: user.email ?? '',
+          fullName: profile?.full_name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+          role: isRole(profile?.role) ? profile.role : 'worker',
+          status: banned ? 'disabled' : user.email_confirmed_at ? 'active' : 'invited',
+          workerId: profile?.worker_id ?? null,
+          createdAt: user.created_at,
+        }
+      }).sort((a, b) => a.fullName.localeCompare(b.fullName))
+      return response({ members })
+    }
+
+    if (action === 'invite') {
+      const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : ''
+      const fullName = typeof body.fullName === 'string' ? body.fullName.trim() : ''
+      const role = body.role
+      const workerId = typeof body.workerId === 'string' && body.workerId ? body.workerId : null
+      const redirectTo = typeof body.redirectTo === 'string' ? body.redirectTo : undefined
+      if (!email || !fullName || !isRole(role)) return response({ error: 'Email, name, and a valid role are required' }, 400)
+
+      const { data, error } = await admin.auth.admin.inviteUserByEmail(email, { data: { full_name: fullName }, redirectTo })
+      if (error) throw error
+      const userId = data.user.id
+      const { error: metadataError } = await admin.auth.admin.updateUserById(userId, { app_metadata: { ...data.user.app_metadata, role } })
+      if (metadataError) throw metadataError
+      const { error: profileError } = await admin.from('profiles').upsert({ id: userId, full_name: fullName, role, worker_id: workerId })
+      if (profileError) throw profileError
+      return response({ member: { id: userId, email, fullName, role, status: 'invited', workerId, createdAt: data.user.created_at } }, 201)
+    }
+
+    const userId = typeof body.userId === 'string' ? body.userId : ''
+    if (!userId) return response({ error: 'A user is required' }, 400)
+    if (userId === callerId) return response({ error: 'You cannot change or disable your own owner access' }, 400)
+
+    if (action === 'update') {
+      const role = body.role
+      const workerId = typeof body.workerId === 'string' && body.workerId ? body.workerId : null
+      if (!isRole(role)) return response({ error: 'Choose a valid role' }, 400)
+      const { data: target, error: targetError } = await admin.auth.admin.getUserById(userId)
+      if (targetError) throw targetError
+      const { error: metadataError } = await admin.auth.admin.updateUserById(userId, { app_metadata: { ...target.user.app_metadata, role } })
+      if (metadataError) throw metadataError
+      const { data: profile, error: profileError } = await admin.from('profiles').update({ role, worker_id: workerId }).eq('id', userId).select('id').single()
+      if (profileError || !profile) throw profileError ?? new Error('Profile was not found')
+      return response({ success: true })
+    }
+
+    if (action === 'set-disabled') {
+      if (typeof body.disabled !== 'boolean') return response({ error: 'Disabled state is required' }, 400)
+      const { error } = await admin.auth.admin.updateUserById(userId, { ban_duration: body.disabled ? '876000h' : 'none' })
+      if (error) throw error
+      return response({ success: true })
+    }
+
+    if (action === 'cancel-invitation') {
+      const { data, error: userError } = await admin.auth.admin.getUserById(userId)
+      if (userError) throw userError
+      if (data.user.email_confirmed_at) return response({ error: 'Only pending invitations can be cancelled' }, 400)
+      const { error } = await admin.auth.admin.deleteUser(userId)
+      if (error) throw error
+      return response({ success: true })
+    }
+
+    return response({ error: 'Unknown action' }, 400)
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unexpected server error'
+    return response({ error: message }, 400)
+  }
+})

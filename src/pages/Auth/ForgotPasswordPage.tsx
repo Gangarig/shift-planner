@@ -10,7 +10,7 @@ function ForgotPasswordPage() {
   const [submitting, setSubmitting] = useState(false)
   async function handleSubmit(event: FormEvent) {
     event.preventDefault(); setSubmitting(true); setError('')
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo: `${window.location.origin}/reset-password` })
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo: new URL('reset-password', `${window.location.origin}${import.meta.env.BASE_URL}`).toString() })
     if (resetError) setError(resetError.message)
     else setSent(true)
     setSubmitting(false)
