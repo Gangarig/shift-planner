@@ -27,8 +27,9 @@ jobs:
       - run: npm test
       - run: npm run build
         env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          # These are public browser credentials. Database access remains protected by RLS.
+          VITE_SUPABASE_URL: https://ysetlaqbthpnvwxzkpbz.supabase.co
+          VITE_SUPABASE_ANON_KEY: sb_publishable_NbEs6o0W4wNPUND1n3KXlA_TwbHLC-O
       - run: cp dist/index.html dist/404.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
