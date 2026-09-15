@@ -255,5 +255,47 @@ body {
 .roster-avatar { display: grid; place-items: center; flex-shrink: 0; width: 33px; height: 33px; border-radius: 50%; background: var(--app-surface-soft); font-size: 11px; font-weight: 700; }
 .mantine-AppShell-header { background: var(--app-surface-raised); }
 .mantine-Title-root { letter-spacing: -.025em; }
+.print-week-title { display: none; }
 @media (max-width: 70em) { .schedule-layout { grid-template-columns: minmax(0, 1fr); } .schedule-roster { position: static; } .roster-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); max-height: 230px; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; } }
+
+@page {
+  size: A4 landscape;
+  margin: 8mm;
+}
+
+@media print {
+  html, body { background: #fff !important; color: #111 !important; }
+  .mantine-AppShell-header,
+  .planner-actions,
+  .planner-week-controls,
+  .planner-station-search,
+  .schedule-roster,
+  .planner-save-status,
+  .mantine-Alert-root { display: none !important; }
+  .mantine-AppShell-main { padding: 0 !important; }
+  .page-container { width: 100% !important; max-width: none !important; }
+  .planner-heading { display: block !important; margin-bottom: 1mm; }
+  .planner-heading .mantine-Text-root { display: none; }
+  .planner-heading .mantine-Title-root { font-size: 15pt; color: #111; }
+  .print-week-title { display: block; margin-bottom: 3mm; font-size: 9pt; color: #333; }
+  .schedule-layout { display: block; }
+  .schedule-scroll { max-height: none; overflow: visible; border: 1px solid #777; border-radius: 0; }
+  .schedule-table { width: 100%; min-width: 0; table-layout: fixed; border-collapse: collapse; }
+  .schedule-table thead { display: table-header-group; }
+  .schedule-table tr { break-inside: avoid; }
+  .schedule-table th,
+  .schedule-table td { position: static !important; border: 1px solid #999; color: #111; background: #fff !important; }
+  .schedule-table th:first-child { width: 19%; }
+  .schedule-table thead th { padding: 1.5mm; font-size: 7.5pt; }
+  .schedule-table tbody th { padding: 1.5mm; font-size: 7.5pt; }
+  .schedule-table th span { margin-top: .5mm; color: #444; font-size: 6.5pt; }
+  .schedule-table .today { box-shadow: none; }
+  .schedule-table td { padding: .8mm; }
+  .schedule-cell,
+  .compact .schedule-cell { min-height: 0; padding: 1.3mm; border: 0; color: #111; background: #fff !important; }
+  .schedule-cell.filled { background: #eef4f8 !important; }
+  .schedule-cell strong { font-size: 7pt; }
+  .schedule-cell span { margin-top: .5mm; font-size: 6pt; color: #444; }
+  .schedule-cell.empty span { color: #777; }
+}

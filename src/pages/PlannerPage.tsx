@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { Alert, Badge, Button, Group, Modal, Paper, SegmentedControl, Select, Stack, Text, Textarea, TextInput, Title } from '@mantine/core'
+import { notifications } from '@mantine/notifications'
 import useApp from '../hooks/useApp'
 import { useAuth } from '../context/AuthContext'
 import { fromDateKey, toDateKey } from '../lib/dateUtils'
@@ -33,6 +34,36 @@ export default function PlannerPage() {
   const selectedName = selection ? app.workers.find(w => w.id === (sourceAssignment?.workerId ?? selection.id))?.name : ''
   const loading = app.loadingAssignments || app.loadingWorkers || app.loadingStations
   const dateLabel = (date: Date) => date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+
+  function weeklyPlanText() {
+    const week = `${dateLabel(days[0].date)} – ${dateLabel(days[4].date)}, ${days[0].date.getFullYear()}`
+    const lines = [`Shift Planner`, `Week ${week}`]
+    for (const day of days) {
+      lines.push('', day.date.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' }))
+      for (const station of app.stations) {
+        if (!station.active) continue
+        const date = toDateKey(day.date)
+        const assignment = weekAssignments.find(item => item.stationId === station.id && toDateKey(item.date) === date)
+        const worker = app.workers.find(item => item.id === assignment?.workerId)
+        lines.push(`${station.name}: ${worker?.name ?? 'Open'}${assignment?.note ? ` — ${assignment.note}` : ''}`)
+      }
+    }
+    return lines.join('\n')
+  }
+
+  async function shareWeeklyPlan() {
+    const text = weeklyPlanText()
+    const title = `Shift Planner · ${dateLabel(days[0].date)} – ${dateLabel(days[4].date)}`
+    if (navigator.share) {
+      try { await navigator.share({ title, text }); return }
+      catch (reason) { if (reason instanceof DOMException && reason.name === 'AbortError') return }
+    }
+    const opened = window.open(`https://wa.me/?text=${encodeURIComponent(`${title}\n\n${text}`)}`, '_blank', 'noopener,noreferrer')
+    if (!opened && navigator.clipboard) {
+      await navigator.clipboard.writeText(text)
+      notifications.show({ color: 'blue', title: 'Plan copied', message: 'Paste it into WhatsApp or another group.' })
+    }
+  }
 
   async function save(work: () => Promise<boolean>) {
     if (lock.current) return false
@@ -76,11 +107,12 @@ export default function PlannerPage() {
   }
   const coverage = app.stations.filter(s => s.active).length * days.length
   return <Stack className="page-container" gap="lg">
-    <Group justify="space-between">
+    <Group justify="space-between" className="planner-heading">
       <div><Text size="xs" tt="uppercase" fw={700} c="dimmed">Your workspace / Schedule</Text><Title order={1}>Weekly planner</Title><Text c="dimmed">{canEdit ? 'Choose a worker, then click an empty cell. Dragging works too.' : 'Your team schedule. Editing is available to managers.'}</Text></div>
-      <Badge variant="light" color="blue">{weekAssignments.length} scheduled · {Math.max(0, coverage - weekAssignments.filter(a => app.stations.find(s => s.id === a.stationId)?.active).length)} open</Badge>
+      <Group className="planner-actions"><Button variant="light" onClick={() => void shareWeeklyPlan()}>Share weekly plan</Button><Button variant="default" onClick={() => window.print()}>Print A4</Button><Badge variant="light" color="blue">{weekAssignments.length} scheduled · {Math.max(0, coverage - weekAssignments.filter(a => app.stations.find(s => s.id === a.stationId)?.active).length)} open</Badge></Group>
     </Group>
-    <Paper withBorder p="md">
+    <Text className="print-week-title" fw={700}>Week {dateLabel(days[0].date)} – {dateLabel(days[4].date)}, {days[0].date.getFullYear()}</Text>
+    <Paper withBorder p="md" className="planner-week-controls">
       <Group justify="space-between">
         <Group><Button variant="default" aria-label="Previous week" onClick={() => shiftWeek(-7)}>←</Button><Text fw={700}>{dateLabel(days[0].date)} – {dateLabel(days[4].date)}, {days[0].date.getFullYear()}</Text><Button variant="default" aria-label="Next week" onClick={() => shiftWeek(7)}>→</Button><Button variant="subtle" onClick={() => { app.setSelectedWeekDate(new Date()); setSelection(null) }}>Today</Button></Group>
         <Group><TextInput aria-label="Jump to week" type="date" value={toDateKey(app.monday)} onChange={e => { if (e.currentTarget.value) { app.setSelectedWeekDate(fromDateKey(e.currentTarget.value)); setSelection(null) } }} /><SegmentedControl aria-label="Grid density" value={density} onChange={setDensity} data={[{ label: 'Compact', value: 'compact' }, { label: 'Comfortable', value: 'comfortable' }]} /></Group>
@@ -90,7 +122,7 @@ export default function PlannerPage() {
     {selection && <Alert color="blue" title={selectedName ? 'Selected: ' + selectedName : 'Assignment selected'}><Group justify="space-between"><Text size="sm">Click an empty cell to {selection.kind === 'assignment' ? 'move this assignment' : 'assign this worker'}.</Text><Button variant="subtle" size="xs" onClick={() => setSelection(null)}>Cancel selection</Button></Group></Alert>}
     <div className="schedule-layout" aria-busy={busy || loading}>
       <Stack gap="sm">
-        <TextInput placeholder="Find a station…" aria-label="Find a station" value={search} onChange={e => setSearch(e.currentTarget.value)} />
+        <TextInput className="planner-station-search" placeholder="Find a station…" aria-label="Find a station" value={search} onChange={e => setSearch(e.currentTarget.value)} />
         <div className={'schedule-scroll ' + density}>
           <table className="schedule-table">
             <thead><tr><th scope="col">Station</th>{days.map(d => <th scope="col" key={d.label} className={toDateKey(d.date) === toDateKey(new Date()) ? 'today' : ''}>{d.label.slice(0, 3)}<span>{dateLabel(d.date)}</span></th>)}</tr></thead>
@@ -110,7 +142,7 @@ export default function PlannerPage() {
           </table>
         </div>
         {!stations.length && <Text c="dimmed" ta="center" p="xl">{loading ? 'Loading stations…' : 'No stations match. Add a station from the Stations page.'}</Text>}
-        <Text size="xs" c="dimmed" aria-live="polite">{busy ? 'Saving your changes…' : 'One worker per station per day. Changes are saved to your workspace.'}</Text>
+        <Text className="planner-save-status" size="xs" c="dimmed" aria-live="polite">{busy ? 'Saving your changes…' : 'One worker per station per day. Changes are saved to your workspace.'}</Text>
       </Stack>
       <Paper withBorder p="md" className="schedule-roster">
         <Stack gap="sm"><Group justify="space-between"><Text fw={700}>Team</Text><Badge color="gray" variant="light">{app.workers.length}</Badge></Group><TextInput placeholder="Find a worker…" aria-label="Find a worker" value={workerSearch} onChange={e => setWorkerSearch(e.currentTarget.value)} />
