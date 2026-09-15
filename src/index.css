@@ -242,13 +242,12 @@ body {
 .schedule-cell strong, .schedule-cell span { display: block; overflow-wrap: anywhere; }
 .schedule-cell strong { font-size: 11px; line-height: 1.15; font-weight: 600; }
 .schedule-cell span { font-size: 9px; line-height: 1.15; color: var(--mantine-color-dimmed); margin-top: 2px; }
-.schedule-cell.filled { background: var(--app-assignment); border-color: var(--app-border); }
-.cell-assignment, .cell-add { display: block; width: 100%; padding: 3px; border: 0; border-radius: 4px; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
-.cell-assignment + .cell-assignment { border-top: 1px solid var(--app-border); }
-.cell-assignment:hover, .cell-add:hover { background: var(--app-surface-raised); }
-.cell-add { color: var(--mantine-color-dimmed); font-size: 10px; text-align: center; }
-.schedule-cell.filled .cell-add { padding-block: 1px; font-size: 9px; line-height: 1.1; }
-.schedule-cell.empty { text-align: center; }
+.schedule-cell.filled { background: transparent; border-color: transparent; }
+.cell-assignment { display: block; width: 100%; margin: 0 0 2px; padding: 3px 4px; border: 1px solid var(--app-border); border-radius: 4px; background: var(--app-assignment); color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.cell-assignment:last-child { margin-bottom: 0; }
+.cell-assignment:hover { filter: brightness(.98); }
+.cell-empty-label { display: grid !important; min-height: 100%; place-items: center; margin: 0 !important; font-size: 14px !important; color: var(--mantine-color-dimmed); }
+.schedule-cell.empty { text-align: center; cursor: pointer; }
 .schedule-cell:enabled:hover { border-color: #7898b5; background: var(--app-surface-soft); }
 .schedule-cell:disabled { cursor: default; }
 .schedule-cell:focus-visible, .roster-worker:focus-visible { outline: 2px solid #44789e; outline-offset: 1px; }
@@ -281,9 +280,9 @@ body {
   .schedule-table { min-width: 560px; }
   .schedule-table th:first-child { width: 92px; }
   .schedule-cell, .compact .schedule-cell { min-height: 44px; }
-  .cell-assignment { min-height: 26px; padding: 2px; }
-  .cell-add { min-height: 28px; padding: 2px; }
-  .schedule-cell.filled .cell-add { min-height: 22px; }
+  .cell-assignment { min-height: 0; padding: 3px 4px; }
+  .cell-assignment strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cell-assignment span { display: none; }
   .dashboard-roster-link { min-height: 44px; }
   .schedule-roster { margin-top: 8px; }
   .roster-list { grid-template-columns: repeat(2, minmax(0, 1fr)); max-height: 164px; }
