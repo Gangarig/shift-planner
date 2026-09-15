@@ -8,6 +8,8 @@ import type { Station, NewStation } from '../types/Station'
 import { createWorker, removeWorker, loadWorkers } from '../services/workerService'
 import { loadStations, createStation, updateStation, removeStation } from '../services/stationService'
 import { loadAssignments, createAssignment, updateAssignment, removeAssignment } from '../services/assignmentService'
+import { loadDailyNotes, saveDailyNote } from '../services/dailyNoteService'
+import type { DailyNote } from '../types/DailyNote'
 import { supabase } from '../lib/supabase'
 import { errorMessage } from '../lib/plannerRules'
 import { getMondayOfWeek, getWeekDays, toDateKey } from '../lib/dateUtils'
@@ -16,6 +18,7 @@ function AppProvider() {
   const [workers, setWorkers] = useState<Worker[]>([])
   const [stations, setStations] = useState<Station[]>([])
   const [assignments, setAssignments] = useState<Assignment[]>([])
+  const [dailyNotes, setDailyNotes] = useState<DailyNote[]>([])
   const [loadingWorkers, setLoadingWorkers] = useState(false)
   const [loadingStations, setLoadingStations] = useState(false)
   const [loadingAssignments, setLoadingAssignments] = useState(false)
@@ -27,7 +30,7 @@ function AppProvider() {
   const weekDays = getWeekDays(monday)
 
   useEffect(() => {
-    void Promise.all([refreshWorkers(), refreshStations(), refreshAssignments()])
+    void Promise.all([refreshWorkers(), refreshStations(), refreshAssignments(), refreshDailyNotes()])
   }, [])
 
   async function refreshWorkers() {
@@ -61,6 +64,27 @@ function AppProvider() {
       notifications.show({ color: 'red', title: 'Assignment loading failed', message: errorMessage(error) })
       return false
     } finally { setLoadingAssignments(false) }
+  }
+
+  async function refreshDailyNotes() {
+    try { setDailyNotes(await loadDailyNotes()) }
+    catch (error) { notifications.show({ color: 'red', title: 'Daily notes failed', message: errorMessage(error) }) }
+  }
+
+  async function handleSaveDailyNote(date: string, note: string) {
+    try { await saveDailyNote(date, note); await refreshDailyNotes(); notifications.show({ color: 'green', title: 'Daily note saved', message: note.trim() ? 'The note is visible on the weekly plan.' : 'The daily note was removed.' }); return true }
+    catch (error) { notifications.show({ color: 'red', title: 'Daily note failed', message: errorMessage(error) }); return false }
+  }
+
+  async function handleAutoAssignPreferredWorkers() {
+    try {
+      const { data, error } = await supabase.rpc('auto_assign_preferred_workers', { week_start: toDateKey(monday) })
+      if (error) throw error
+      await refreshAssignments()
+      const count = Number(data ?? 0)
+      notifications.show({ color: count ? 'green' : 'blue', title: 'Main stations filled', message: count ? `${count} assignment(s) added.` : 'Everyone is already assigned or has no main station.' })
+      return count
+    } catch (error) { notifications.show({ color: 'red', title: 'Automatic assignment failed', message: errorMessage(error) }); return null }
   }
 
   async function handleCreateAssignment(assignment: NewAssignment) {
@@ -161,7 +185,7 @@ function AppProvider() {
     catch (error) { setWorkersError('Could not delete worker'); notifications.show({ color: 'red', title: 'Worker failed', message: errorMessage(error) }) ; return false }
   }
 
-  return <AppContext.Provider value={{ workers, stations, assignments, createWorker: handleCreateWorker, updateWorker: handleUpdateWorker, removeWorker: handleRemoveWorker, createStation: handleCreateStation, updateStation: handleUpdateStation, removeStation: handleRemoveStation, createAssignment: handleCreateAssignment, updateAssignment: handleUpdateAssignment, removeAssignment: handleRemoveAssignment, monday, weekDays, selectedWeekDate, setSelectedWeekDate, loadingWorkers, workersError, loadingStations, stationsError, loadingAssignments, assignmentsError }}><Outlet /></AppContext.Provider>
+  return <AppContext.Provider value={{ workers, stations, assignments, dailyNotes, createWorker: handleCreateWorker, updateWorker: handleUpdateWorker, removeWorker: handleRemoveWorker, createStation: handleCreateStation, updateStation: handleUpdateStation, removeStation: handleRemoveStation, createAssignment: handleCreateAssignment, updateAssignment: handleUpdateAssignment, removeAssignment: handleRemoveAssignment, saveDailyNote: handleSaveDailyNote, autoAssignPreferredWorkers: handleAutoAssignPreferredWorkers, monday, weekDays, selectedWeekDate, setSelectedWeekDate, loadingWorkers, workersError, loadingStations, stationsError, loadingAssignments, assignmentsError }}><Outlet /></AppContext.Provider>
 }
 
 export default AppProvider

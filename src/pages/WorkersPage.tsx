@@ -22,6 +22,7 @@ function WorkersPage() {
         sortOrderWorker
   } = useWorker(search)
       const {workers,
+          stations,
           assignments,
           createWorker,
           removeWorker,
@@ -70,7 +71,7 @@ function WorkersPage() {
                   <WorkerDetail worker={selectedWorker} setSelectedWorker={setSelectedWorker}
                     onRemoveWorker={removeWorker} onChangeOfStatus={handleUpdateWorker}
                     assignments={assignments} updateWorkerState={handleUpdateWorker} />
-                  <WorkerEdit key={JSON.stringify(selectedWorker)} selectedWorker={selectedWorker} onUpdateWorker={updateWorker} />
+                  <WorkerEdit key={JSON.stringify(selectedWorker)} selectedWorker={selectedWorker} stations={stations} onUpdateWorker={updateWorker} />
                 </Stack>
               )}
             </SimpleGrid>
@@ -79,6 +80,7 @@ function WorkersPage() {
           <Modal opened={createOpened} onClose={closeCreate} title="Add worker" centered>
           <WorkerForm
           workers={workers}
+          stations={stations}
           onCreateWorker={async worker => { const ok = await createWorker(worker); if (ok) closeCreate(); return ok }}
           />
           </Modal>

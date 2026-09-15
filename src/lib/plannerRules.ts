@@ -13,12 +13,11 @@ export function assignmentProblem(worker: Worker | undefined, station: Station |
   if (!station.active) return 'This station is inactive.'
   const day = toDateKey(date)
   if (assignments.some(a => a.id !== ignoreId && a.workerId === worker.id && toDateKey(a.date) === day)) return 'This worker already has an assignment on this day.'
-  if (assignments.some(a => a.id !== ignoreId && a.stationId === station.id && toDateKey(a.date) === day)) return 'This station already has an assignment on this day.'
   return null
 }
 export function errorMessage(error: unknown) {
   const e = error as { code?: string; message?: string }
-  if (e?.code === '23505') return 'That worker or station was just booked. Refresh the planner and choose another cell.'
+  if (e?.code === '23505') return 'That worker was just booked on this day. Refresh the planner and try again.'
   if (e?.code === '42501' || e?.code === 'PGRST116') return 'This change was not saved. Check your access and refresh the page.'
   if (e?.code === '23503') return 'Remove the related assignments before deleting this record.'
   return e?.message || 'The request failed. Check your connection and try again.'

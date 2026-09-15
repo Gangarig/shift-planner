@@ -9,6 +9,7 @@ export interface Worker {
   phoneNumber?: string
   vacationDays?: number
   plusHours?: number
+  preferredStationId?: string | null
 }
 
 export type NewWorker = Omit<Worker, 'id'>

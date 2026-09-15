@@ -25,7 +25,7 @@ test('calendar dates round trip across timezones', () => {
 test('Sunday resolves to preceding Monday', () => assert.equal(toDateKey(getMondayOfWeek(fromDateKey('2026-09-20'))),'2026-09-14'))
 test('free cell accepts worker', () => assert.equal(assignmentProblem(worker,station,date,[]),null))
 test('worker double-booking rejected', () => assert.match(assignmentProblem(worker,{id:'other',active:true},date,[assignment]),/worker already/))
-test('station double-booking rejected', () => assert.match(assignmentProblem({id:'other',status:'available'},station,date,[assignment]),/station already/))
+test('a station accepts multiple workers on the same day', () => assert.equal(assignmentProblem({id:'other',status:'available'},station,date,[assignment]),null))
 test('moving an assignment ignores its own booking', () => assert.equal(assignmentProblem(worker,station,date,[assignment],'a'),null))
 test('unavailable workers and inactive stations rejected', () => {
  assert.match(assignmentProblem({...worker,status:'sick'},station,date,[]),/unavailable/)

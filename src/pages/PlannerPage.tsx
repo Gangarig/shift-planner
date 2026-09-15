@@ -26,6 +26,8 @@ export default function PlannerPage() {
   const [workerId, setWorkerId] = useState('')
   const [note, setNote] = useState('')
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [dayEditor, setDayEditor] = useState<string | null>(null)
+  const [dayNote, setDayNote] = useState('')
   const days = app.weekDays
   const dates = new Set(days.map(d => toDateKey(d.date)))
   const weekAssignments = app.assignments.filter(a => dates.has(toDateKey(a.date)))
@@ -43,12 +45,14 @@ export default function PlannerPage() {
       const holiday = austrianPublicHoliday(day.date)
       lines.push('', day.date.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' }))
       if (holiday) { lines.push(`Closed — ${holiday}`); continue }
+      const dailyNote = app.dailyNotes.find(item => item.date === toDateKey(day.date))?.note
+      if (dailyNote) lines.push(`Note: ${dailyNote}`)
       for (const station of app.stations) {
         if (!station.active) continue
         const date = toDateKey(day.date)
-        const assignment = weekAssignments.find(item => item.stationId === station.id && toDateKey(item.date) === date)
-        const worker = app.workers.find(item => item.id === assignment?.workerId)
-        lines.push(`${station.name}: ${worker?.name ?? 'Open'}${assignment?.note ? ` — ${assignment.note}` : ''}`)
+        const stationAssignments = weekAssignments.filter(item => item.stationId === station.id && toDateKey(item.date) === date)
+        const names = stationAssignments.map(item => `${app.workers.find(worker => worker.id === item.workerId)?.name ?? 'Unknown'}${item.note ? ` — ${item.note}` : ''}`)
+        lines.push(`${station.name}: ${names.join(', ') || 'Open'}`)
       }
     }
     return lines.join('\n')
@@ -113,7 +117,7 @@ export default function PlannerPage() {
   return <Stack className="page-container" gap="lg">
     <Group justify="space-between" className="planner-heading">
       <div><Text size="xs" tt="uppercase" fw={700} c="dimmed">Your workspace / Schedule</Text><Title order={1}>Weekly planner</Title><Text c="dimmed">{canEdit ? 'Choose a worker, then click an empty cell. Dragging works too.' : 'Your team schedule. Editing is available to managers.'}</Text></div>
-      <Group className="planner-actions"><Button variant="light" onClick={() => void shareWeeklyPlan()}>Share weekly plan</Button><Button variant="default" onClick={() => window.print()}>Print A4</Button><Badge variant="light" color="blue">{weekAssignments.length} scheduled · {Math.max(0, coverage - weekAssignments.filter(a => app.stations.find(s => s.id === a.stationId)?.active).length)} open</Badge></Group>
+      <Group className="planner-actions">{canEdit && <Button variant="filled" loading={busy} onClick={() => void save(async () => (await app.autoAssignPreferredWorkers()) !== null)}>Fill main stations</Button>}<Button variant="light" onClick={() => void shareWeeklyPlan()}>Share weekly plan</Button><Button variant="default" onClick={() => window.print()}>Print A4</Button><Badge variant="light" color="blue">{weekAssignments.length} scheduled · {Math.max(0, coverage - new Set(weekAssignments.filter(a => app.stations.find(s => s.id === a.stationId)?.active).map(a => `${a.stationId}-${toDateKey(a.date)}`)).size)} open</Badge></Group>
     </Group>
     <Text className="print-week-title" fw={700}>Week {dateLabel(days[0].date)} – {dateLabel(days[4].date)}, {days[0].date.getFullYear()}</Text>
     <Paper withBorder p="md" className="planner-week-controls">
@@ -129,26 +133,26 @@ export default function PlannerPage() {
         <TextInput className="planner-station-search" placeholder="Find a station…" aria-label="Find a station" value={search} onChange={e => setSearch(e.currentTarget.value)} />
         <div className={'schedule-scroll ' + density}>
           <table className="schedule-table">
-            <thead><tr><th scope="col">Station</th>{days.map(d => { const holiday = austrianPublicHoliday(d.date); return <th scope="col" key={d.label} className={`${toDateKey(d.date) === toDateKey(new Date()) ? 'today ' : ''}${holiday ? 'holiday-column' : ''}`}>{d.label.slice(0, 3)}<span>{dateLabel(d.date)}</span>{holiday && <small>Closed · {holiday}</small>}</th> })}</tr></thead>
+            <thead><tr><th scope="col">Station</th>{days.map(d => { const date = toDateKey(d.date); const holiday = austrianPublicHoliday(d.date); const dailyNote = app.dailyNotes.find(n => n.date === date); return <th scope="col" key={d.label} className={`${date === toDateKey(new Date()) ? 'today ' : ''}${holiday ? 'holiday-column' : ''}`}>{d.label.slice(0, 3)}<span>{dateLabel(d.date)}</span>{holiday ? <small>Closed · {holiday}</small> : <button type="button" className="day-note-button" onClick={() => { setDayEditor(date); setDayNote(dailyNote?.note ?? '') }}>{dailyNote ? `Note: ${dailyNote.note}` : canEdit ? '+ Daily note' : ''}</button>}</th> })}</tr></thead>
             <tbody>{stations.map(station => <tr key={station.id}><th scope="row">{station.name}{!station.active && <small>Inactive</small>}</th>{days.map(day => {
               const date = toDateKey(day.date)
               const holiday = austrianPublicHoliday(day.date)
               const cellKey = station.id + date
-              const assignment = weekAssignments.find(a => a.stationId === station.id && toDateKey(a.date) === date)
-              const worker = app.workers.find(w => w.id === assignment?.workerId)
+              const cellAssignments = weekAssignments.filter(a => a.stationId === station.id && toDateKey(a.date) === date)
               if (holiday) return <td key={date} className="holiday-cell" aria-label={`${station.name}, ${date}, closed for ${holiday}`} />
-              return <td key={date} className={target === cellKey ? 'drop-target' : ''} onDragOver={e => { if (canEdit && dragging.current && !assignment && station.active && !busy) { e.preventDefault(); e.dataTransfer.dropEffect = dragging.current.kind === 'assignment' ? 'move' : 'copy'; setTarget(cellKey) } }} onDragLeave={() => setTarget('')} onDrop={e => { e.preventDefault(); setTarget(''); const picked = dragging.current; dragging.current = null; void place(station.id, day.date, picked) }}>
-                <button type="button" className={'schedule-cell ' + (assignment ? 'filled' : 'empty')} disabled={busy || loading || (!assignment && (!canEdit || !station.active))} aria-label={(worker?.name ?? 'Assign worker') + ', ' + station.name + ', ' + date} onClick={() => openCell(station.id, day.date, assignment)} draggable={canEdit && !!assignment && !busy}
-                  onDragStart={e => { if (assignment) { dragging.current = { kind: 'assignment', id: assignment.id }; e.dataTransfer.setData('text/plain', assignment.id); e.dataTransfer.effectAllowed = 'move' } }}
-                  onDragEnd={() => { dragging.current = null; setTarget('') }}>
-                  {assignment ? <><strong>{worker?.name ?? 'Unknown worker'}</strong><span>{assignment.note || 'View assignment'}</span></> : <span>{station.active ? '+ Assign' : '—'}</span>}
-                </button>
+              return <td key={date} className={target === cellKey ? 'drop-target' : ''} onDragOver={e => { if (canEdit && dragging.current && station.active && !busy) { e.preventDefault(); e.dataTransfer.dropEffect = dragging.current.kind === 'assignment' ? 'move' : 'copy'; setTarget(cellKey) } }} onDragLeave={() => setTarget('')} onDrop={e => { e.preventDefault(); setTarget(''); const picked = dragging.current; dragging.current = null; void place(station.id, day.date, picked) }}>
+                <div className={'schedule-cell ' + (cellAssignments.length ? 'filled' : 'empty')}>
+                  {cellAssignments.map(assignment => { const worker = app.workers.find(w => w.id === assignment.workerId); return <button type="button" className="cell-assignment" key={assignment.id} disabled={busy || loading} aria-label={(worker?.name ?? 'Unknown worker') + ', ' + station.name + ', ' + date} onClick={() => openCell(station.id, day.date, assignment)} draggable={canEdit && !busy}
+                    onDragStart={e => { dragging.current = { kind: 'assignment', id: assignment.id }; e.dataTransfer.setData('text/plain', assignment.id); e.dataTransfer.effectAllowed = 'move' }} onDragEnd={() => { dragging.current = null; setTarget('') }}><strong>{worker?.name ?? 'Unknown worker'}</strong>{assignment.note && <span>{assignment.note}</span>}</button> })}
+                  {canEdit && station.active && <button type="button" className="cell-add" disabled={busy || loading} onClick={() => openCell(station.id, day.date)}>+ Assign</button>}
+                  {!canEdit && !cellAssignments.length && <span>Open</span>}
+                </div>
               </td>
             })}</tr>)}</tbody>
           </table>
         </div>
         {!stations.length && <Text c="dimmed" ta="center" p="xl">{loading ? 'Loading stations…' : 'No stations match. Add a station from the Stations page.'}</Text>}
-        <Text className="planner-save-status" size="xs" c="dimmed" aria-live="polite">{busy ? 'Saving your changes…' : 'One worker per station per day. Changes are saved to your workspace.'}</Text>
+        <Text className="planner-save-status" size="xs" c="dimmed" aria-live="polite">{busy ? 'Saving your changes…' : 'Stations can have several workers; each worker can only be assigned once per day.'}</Text>
       </Stack>
       <Paper withBorder p="md" className="schedule-roster">
         <Stack gap="sm"><Group justify="space-between"><Text fw={700}>Team</Text><Badge color="gray" variant="light">{app.workers.length}</Badge></Group><TextInput placeholder="Find a worker…" aria-label="Find a worker" value={workerSearch} onChange={e => setWorkerSearch(e.currentTarget.value)} />
@@ -171,6 +175,9 @@ export default function PlannerPage() {
         {canEdit && <Group justify="space-between"><Button loading={busy} disabled={!workerId} onClick={() => void submit()}>Save assignment</Button>{editor.id && <Button variant="light" disabled={busy} onClick={() => { setSelection({ kind: 'assignment', id: editor.id! }); setEditor(null) }}>Move to another cell</Button>}</Group>}
         {editor.id && canEdit && (confirmDelete ? <Alert color="red" title="Remove this assignment?"><Button color="red" loading={busy} onClick={() => { const a = app.assignments.find(a => a.id === editor.id); if (a) void save(() => app.removeAssignment(a)) }}>Confirm removal</Button></Alert> : <Button color="red" variant="subtle" onClick={() => setConfirmDelete(true)}>Remove assignment</Button>)}
       </Stack>}
+    </Modal>
+    <Modal opened={!!dayEditor} onClose={() => { if (!busy) setDayEditor(null) }} title="Daily note" centered>
+      {dayEditor && <Stack><Text c="dimmed" size="sm">{fromDateKey(dayEditor).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</Text><Textarea autoFocus label="Note for the whole day" placeholder="Deliveries, training, appointments, special instructions…" value={dayNote} onChange={e => setDayNote(e.currentTarget.value)} readOnly={!canEdit} autosize minRows={4} maxLength={4000} />{canEdit && <Button loading={busy} onClick={() => void save(async () => { const ok = await app.saveDailyNote(dayEditor, dayNote); if (ok) setDayEditor(null); return ok })}>Save daily note</Button>}</Stack>}
     </Modal>
   </Stack>
 }

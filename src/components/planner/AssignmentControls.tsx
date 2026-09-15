@@ -25,9 +25,8 @@ function AssignmentControls({ stations, workers, assignments, onCreateAssignment
     const station = stations.find((item) => item.id === selectedStationId)
     if (!worker || !station || !selectedDate || !station.active || worker.status !== 'available') return
     const date = fromDateKey(selectedDate)
-    const isStationTaken = assignments.some((item) => item.stationId === station.id && toDateKey(item.date) === selectedDate)
     const isWorkerTaken = assignments.some((item) => item.workerId === worker.id && toDateKey(item.date) === selectedDate)
-    if (isStationTaken || isWorkerTaken) return
+    if (isWorkerTaken) return
     const saved = await onCreateAssignment({ workerId: worker.id, stationId: station.id, date, note: note.trim() || null })
     if (saved) onCreated?.()
   }
