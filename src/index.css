@@ -247,6 +247,7 @@ body {
 .cell-assignment + .cell-assignment { border-top: 1px solid var(--app-border); }
 .cell-assignment:hover, .cell-add:hover { background: var(--app-surface-raised); }
 .cell-add { color: var(--mantine-color-dimmed); font-size: 10px; text-align: center; }
+.schedule-cell.filled .cell-add { padding-block: 1px; font-size: 9px; line-height: 1.1; }
 .schedule-cell.empty { text-align: center; }
 .schedule-cell:enabled:hover { border-color: #7898b5; background: var(--app-surface-soft); }
 .schedule-cell:disabled { cursor: default; }
@@ -280,7 +281,10 @@ body {
   .schedule-table { min-width: 560px; }
   .schedule-table th:first-child { width: 92px; }
   .schedule-cell, .compact .schedule-cell { min-height: 44px; }
-  .cell-assignment, .cell-add, .dashboard-roster-link { min-height: 44px; }
+  .cell-assignment { min-height: 26px; padding: 2px; }
+  .cell-add { min-height: 28px; padding: 2px; }
+  .schedule-cell.filled .cell-add { min-height: 22px; }
+  .dashboard-roster-link { min-height: 44px; }
   .schedule-roster { margin-top: 8px; }
   .roster-list { grid-template-columns: repeat(2, minmax(0, 1fr)); max-height: 164px; }
   .roster-worker .mantine-Badge-root { display: none; }

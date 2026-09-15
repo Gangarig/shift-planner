@@ -154,7 +154,7 @@ export default function PlannerPage() {
                 <div className={'schedule-cell ' + (cellAssignments.length ? 'filled' : 'empty')}>
                   {cellAssignments.map(assignment => { const worker = app.workers.find(w => w.id === assignment.workerId); return <button type="button" className="cell-assignment" key={assignment.id} disabled={busy || loading} aria-label={(worker?.name ?? 'Unknown worker') + ', ' + station.name + ', ' + date} onClick={() => openCell(station.id, day.date, assignment)} draggable={canEdit && !busy}
                     onDragStart={e => { dragging.current = { kind: 'assignment', id: assignment.id }; e.dataTransfer.setData('text/plain', assignment.id); e.dataTransfer.effectAllowed = 'move' }} onDragEnd={() => { dragging.current = null; setTarget('') }}><strong>{worker?.name ?? 'Unknown worker'}</strong>{(assignment.startTime || assignment.endTime) && <span>{assignment.startTime || '?'}–{assignment.endTime || '?'}</span>}{assignment.note && <span>{assignment.note}</span>}</button> })}
-                  {canEdit && station.active && <button type="button" className="cell-add" disabled={busy || loading} onClick={() => openCell(station.id, day.date)}>+ Assign</button>}
+                  {canEdit && station.active && <button type="button" className="cell-add" disabled={busy || loading} onClick={() => openCell(station.id, day.date)} aria-label={`Assign another worker to ${station.name} on ${date}`}>{cellAssignments.length ? '+ Add' : '+ Assign'}</button>}
                   {!canEdit && !cellAssignments.length && <span>Open</span>}
                 </div>
               </td>
