@@ -6,10 +6,11 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createRequire } from 'node:module'
 const output = mkdtempSync(join(tmpdir(), 'shiftplanner-tests-'))
-execFileSync('./node_modules/.bin/tsc', ['--ignoreConfig','--skipLibCheck','--target','es2022','--module','commonjs','--outDir',output,'src/lib/plannerRules.ts','src/lib/dateUtils.ts'])
+execFileSync('./node_modules/.bin/tsc', ['--ignoreConfig','--skipLibCheck','--target','es2022','--module','commonjs','--outDir',output,'src/lib/plannerRules.ts','src/lib/dateUtils.ts','src/lib/austrianHolidays.ts'])
 const require = createRequire(import.meta.url)
 const { assignmentProblem } = require(join(output,'lib/plannerRules.js'))
 const { toDateKey, fromDateKey, getMondayOfWeek } = require(join(output,'lib/dateUtils.js'))
+const { austrianPublicHoliday } = require(join(output,'lib/austrianHolidays.js'))
 const worker = { id:'w', status:'available' }
 const station = { id:'s', active:true }
 const date = fromDateKey('2026-09-14')
@@ -31,3 +32,12 @@ test('unavailable workers and inactive stations rejected', () => {
  assert.match(assignmentProblem(worker,{...station,active:false},date,[]),/inactive/)
 })
 test('invalid dates rejected', () => assert.match(assignmentProblem(worker,station,new Date('invalid'),[]),/valid date/))
+test('Austrian fixed and movable public holidays are closed', () => {
+  assert.equal(austrianPublicHoliday('2026-01-01'), "New Year's Day")
+  assert.equal(austrianPublicHoliday('2026-04-06'), 'Easter Monday')
+  assert.equal(austrianPublicHoliday('2026-05-14'), 'Ascension Day')
+  assert.equal(austrianPublicHoliday('2026-10-26'), 'Austrian National Day')
+  assert.equal(austrianPublicHoliday('2027-03-29'), 'Easter Monday')
+  assert.equal(austrianPublicHoliday('2026-09-15'), null)
+})
+test('assignments on Austrian public holidays are rejected', () => assert.match(assignmentProblem(worker,station,fromDateKey('2026-10-26'),[]),/public holiday/))

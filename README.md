@@ -25,6 +25,8 @@ npm run build
 ## Planner
 Select a worker and click an empty cell, or drag a worker onto the grid. Click an assignment to edit its note, move it, or confirm removal. Use the week controls, station/worker search, and density switch to adjust your view. The first column and date header remain visible when scrolling.
 
+Austria's 13 nationwide statutory public holidays are automatically marked closed. Their planner cells remain blank, they are excluded from capacity totals, and assignments are rejected in both the interface and database. Fixed and Easter-based holidays are calculated for any year.
+
 Use **Share weekly plan** to send a text version through the phone share sheet, including WhatsApp. Use **Print A4** for a clean landscape printout of the complete weekly grid.
 
 ## Database setup

@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext'
 import { fromDateKey, toDateKey } from '../lib/dateUtils'
 import { assignmentProblem } from '../lib/plannerRules'
 import type { Assignment } from '../types/Assignment'
+import { austrianPublicHoliday } from '../lib/austrianHolidays'
 
 type Selection = { kind: 'worker' | 'assignment'; id: string }
 export default function PlannerPage() {
@@ -39,7 +40,9 @@ export default function PlannerPage() {
     const week = `${dateLabel(days[0].date)} – ${dateLabel(days[4].date)}, ${days[0].date.getFullYear()}`
     const lines = [`Shift Planner`, `Week ${week}`]
     for (const day of days) {
+      const holiday = austrianPublicHoliday(day.date)
       lines.push('', day.date.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' }))
+      if (holiday) { lines.push(`Closed — ${holiday}`); continue }
       for (const station of app.stations) {
         if (!station.active) continue
         const date = toDateKey(day.date)
@@ -105,7 +108,8 @@ export default function PlannerPage() {
     const next = new Date(app.monday); next.setDate(next.getDate() + offset)
     app.setSelectedWeekDate(next); setSelection(null); setMessage('')
   }
-  const coverage = app.stations.filter(s => s.active).length * days.length
+  const workingDays = days.filter(day => !austrianPublicHoliday(day.date))
+  const coverage = app.stations.filter(s => s.active).length * workingDays.length
   return <Stack className="page-container" gap="lg">
     <Group justify="space-between" className="planner-heading">
       <div><Text size="xs" tt="uppercase" fw={700} c="dimmed">Your workspace / Schedule</Text><Title order={1}>Weekly planner</Title><Text c="dimmed">{canEdit ? 'Choose a worker, then click an empty cell. Dragging works too.' : 'Your team schedule. Editing is available to managers.'}</Text></div>
@@ -125,12 +129,14 @@ export default function PlannerPage() {
         <TextInput className="planner-station-search" placeholder="Find a station…" aria-label="Find a station" value={search} onChange={e => setSearch(e.currentTarget.value)} />
         <div className={'schedule-scroll ' + density}>
           <table className="schedule-table">
-            <thead><tr><th scope="col">Station</th>{days.map(d => <th scope="col" key={d.label} className={toDateKey(d.date) === toDateKey(new Date()) ? 'today' : ''}>{d.label.slice(0, 3)}<span>{dateLabel(d.date)}</span></th>)}</tr></thead>
+            <thead><tr><th scope="col">Station</th>{days.map(d => { const holiday = austrianPublicHoliday(d.date); return <th scope="col" key={d.label} className={`${toDateKey(d.date) === toDateKey(new Date()) ? 'today ' : ''}${holiday ? 'holiday-column' : ''}`}>{d.label.slice(0, 3)}<span>{dateLabel(d.date)}</span>{holiday && <small>Closed · {holiday}</small>}</th> })}</tr></thead>
             <tbody>{stations.map(station => <tr key={station.id}><th scope="row">{station.name}{!station.active && <small>Inactive</small>}</th>{days.map(day => {
               const date = toDateKey(day.date)
+              const holiday = austrianPublicHoliday(day.date)
               const cellKey = station.id + date
               const assignment = weekAssignments.find(a => a.stationId === station.id && toDateKey(a.date) === date)
               const worker = app.workers.find(w => w.id === assignment?.workerId)
+              if (holiday) return <td key={date} className="holiday-cell" aria-label={`${station.name}, ${date}, closed for ${holiday}`} />
               return <td key={date} className={target === cellKey ? 'drop-target' : ''} onDragOver={e => { if (canEdit && dragging.current && !assignment && station.active && !busy) { e.preventDefault(); e.dataTransfer.dropEffect = dragging.current.kind === 'assignment' ? 'move' : 'copy'; setTarget(cellKey) } }} onDragLeave={() => setTarget('')} onDrop={e => { e.preventDefault(); setTarget(''); const picked = dragging.current; dragging.current = null; void place(station.id, day.date, picked) }}>
                 <button type="button" className={'schedule-cell ' + (assignment ? 'filled' : 'empty')} disabled={busy || loading || (!assignment && (!canEdit || !station.active))} aria-label={(worker?.name ?? 'Assign worker') + ', ' + station.name + ', ' + date} onClick={() => openCell(station.id, day.date, assignment)} draggable={canEdit && !!assignment && !busy}
                   onDragStart={e => { if (assignment) { dragging.current = { kind: 'assignment', id: assignment.id }; e.dataTransfer.setData('text/plain', assignment.id); e.dataTransfer.effectAllowed = 'move' } }}

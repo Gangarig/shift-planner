@@ -5,6 +5,7 @@ This release keeps the existing dashboard, planner, workers, stations, and setti
 - [x] Planner: dated week navigation, readable grid, compact/comfortable density, station search.
 - [x] Scheduling: click or drag to assign, move existing assignments, edit notes, confirm removal, show conflicts.
 - [x] Distribution: phone share sheet/WhatsApp-friendly weekly plan and A4 landscape full-grid printing.
+- [x] Austrian public holidays: automatic fixed/movable dates, closed blank columns, and database-enforced assignment rejection.
 - [x] Data: verify returned rows on writes; show errors; preserve forms after failed saves.
 - [x] Security: close legacy public worker access and check role-based database writes.
 - [x] Authentication: prevent stale profile requests from restoring a signed-out session.

@@ -2,10 +2,13 @@ import type { Assignment } from '../types/Assignment'
 import type { Worker } from '../types/Worker'
 import type { Station } from '../types/Station'
 import { toDateKey } from './dateUtils'
+import { austrianPublicHoliday } from './austrianHolidays'
 
 export function assignmentProblem(worker: Worker | undefined, station: Station | undefined, date: Date, assignments: Assignment[], ignoreId?: string) {
   if (!worker || !station) return 'Choose a worker and station.'
   if (!Number.isFinite(date.getTime())) return 'Choose a valid date.'
+  const holiday = austrianPublicHoliday(date)
+  if (holiday) return `${holiday} is a public holiday. The workplace is closed.`
   if (worker.status !== 'available') return 'This worker is currently unavailable.'
   if (!station.active) return 'This station is inactive.'
   const day = toDateKey(date)
@@ -20,4 +23,3 @@ export function errorMessage(error: unknown) {
   if (e?.code === '23503') return 'Remove the related assignments before deleting this record.'
   return e?.message || 'The request failed. Check your connection and try again.'
 }
-
