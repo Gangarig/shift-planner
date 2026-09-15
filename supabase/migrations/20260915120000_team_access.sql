@@ -8,5 +8,9 @@ create unique index if not exists profiles_worker_id_key
 comment on column public.profiles.worker_id is
   'Optional link between a login account and a schedulable worker record.';
 
+-- Remove inherited broad grants. RLS covers row operations, but not TRUNCATE.
+revoke all on public.profiles, public.workers, public.stations, public.assignments from anon, authenticated;
+grant select on public.profiles to authenticated;
+grant select, insert, update, delete on public.workers, public.stations, public.assignments to authenticated;
+
 -- Profiles are changed only by the trusted manage-team Edge Function.
-revoke insert, update, delete on public.profiles from anon, authenticated;
