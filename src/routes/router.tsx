@@ -16,6 +16,7 @@ const ResetPasswordPage = lazy(() => import('../pages/Auth/ResetPasswordPage'))
 const TeamAccessPage = lazy(() => import('../pages/TeamAccessPage'))
 const Unauthorized = lazy(() => import('../pages/Unauthorized'))
 const NotFoundPage = lazy(() => import('../pages/NotFoundPage'))
+const AuditPage = lazy(() => import('../pages/AuditPage'))
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
@@ -30,7 +31,7 @@ export const router = createBrowserRouter([
           { path: 'workers', element: <WorkersPage /> }, { path: 'stations', element: <StationsPage /> },
         ] },
         { element: <ProtectedRoute allowedRoles={['admin', 'owner']} />, children: [{ path: 'settings', element: <SettingsPage /> }] },
-        { element: <ProtectedRoute allowedRoles={['owner']} />, children: [{ path: 'team', element: <TeamAccessPage /> }] },
+        { element: <ProtectedRoute allowedRoles={['owner']} />, children: [{ path: 'team', element: <TeamAccessPage /> }, { path: 'audit', element: <AuditPage /> }] },
         { path: 'unauthorized', element: <Unauthorized /> },
         { path: '*', element: <NotFoundPage /> },
       ] },

@@ -28,6 +28,30 @@ begin
  delete from public.workers where id=w;
  delete from public.stations where id=s;
 end $$;
+do $$
+declare w uuid; s uuid; n integer;
+begin
+ insert into public.workers(name,email,role,status) values ('Absence verification','absence@example.invalid','worker','available') returning id into w;
+ insert into public.stations(name,active,"defaultStartTime","defaultEndTime") values ('Timed verification',true,'06:00','15:30') returning id into s;
+ insert into public.assignments("workerId","stationId",date,"startTime","endTime") values(w,s,'2099-03-02','06:00','15:30');
+ insert into public.worker_absences("workerId","startDate","endDate",status,note) values(w,'2099-03-02','2099-03-02','late','Verification');
+ select count(*) into n from public.assignments where "workerId"=w;
+ if n <> 1 then raise exception 'TEST FAILED: late status removed assignment'; end if;
+ insert into public.worker_absences("workerId","startDate","endDate",status) values(w,'2099-03-02','2099-03-02','sick');
+ select count(*) into n from public.assignments where "workerId"=w;
+ if n <> 0 then raise exception 'TEST FAILED: dated sickness did not clear assignment'; end if;
+ begin
+   insert into public.assignments("workerId","stationId",date) values(w,s,'2099-03-02');
+   raise exception 'TEST FAILED: assignment allowed during dated sickness';
+ exception when raise_exception then if SQLERRM = 'TEST FAILED: assignment allowed during dated sickness' then raise; end if; end;
+ begin
+   update public.stations set "defaultStartTime"='16:00', "defaultEndTime"='08:00' where id=s;
+   raise exception 'TEST FAILED: invalid shift order allowed';
+ exception when check_violation then null; end;
+ delete from public.worker_absences where "workerId"=w;
+ delete from public.workers where id=w;
+ delete from public.stations where id=s;
+end $$;
 reset role;
 select set_config('request.jwt.claims','{"sub":"00000000-0000-4000-8000-000000000001","role":"authenticated"}',true);
 set local role authenticated;
@@ -43,5 +67,5 @@ do $$ begin
  begin perform 1 from public.workers limit 1; raise exception 'TEST FAILED: public worker access'; exception when insufficient_privilege then null; end;
 end $$;
 reset role;
-select 'PASS: owner CRUD, double booking, valid dates, atomic selected-week cleanup, note edits, unavailable-worker rejection, unprivileged writes, anonymous read denial' as result;
+select 'PASS: owner CRUD, double booking, valid dates/times, dated absences, atomic selected-week cleanup, note edits, unavailable-worker rejection, unprivileged writes, anonymous read denial' as result;
 rollback;

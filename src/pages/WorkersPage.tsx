@@ -24,6 +24,10 @@ function WorkersPage() {
       const {workers,
           stations,
           assignments,
+          absences,
+          monday,
+          createAbsence,
+          removeAbsence,
           createWorker,
           removeWorker,
           updateWorker,
@@ -70,7 +74,7 @@ function WorkersPage() {
                 <Stack>
                   <WorkerDetail worker={selectedWorker} setSelectedWorker={setSelectedWorker}
                     onRemoveWorker={removeWorker} onChangeOfStatus={handleUpdateWorker}
-                    assignments={assignments} updateWorkerState={handleUpdateWorker} />
+                    assignments={assignments} updateWorkerState={handleUpdateWorker} absences={absences} weekStart={monday} onCreateAbsence={createAbsence} onRemoveAbsence={removeAbsence} />
                   <WorkerEdit key={JSON.stringify(selectedWorker)} selectedWorker={selectedWorker} stations={stations} onUpdateWorker={updateWorker} />
                 </Stack>
               )}

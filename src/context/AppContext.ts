@@ -3,12 +3,14 @@ import type { Worker, NewWorker } from '../types/Worker'
 import type { Station, NewStation } from '../types/Station'
 import type { Assignment, NewAssignment } from '../types/Assignment'
 import type { DailyNote } from '../types/DailyNote'
+import type { NewWorkerAbsence, WorkerAbsence } from '../types/WorkerAbsence'
 
 export interface AppContextValue {
   workers: Worker[]
   stations: Station[]
   assignments: Assignment[]
   dailyNotes: DailyNote[]
+  absences: WorkerAbsence[]
   createWorker: (worker: NewWorker) => Promise<boolean>
   updateWorker: (worker: Worker) => Promise<boolean>
   removeWorker: (worker: Worker) => Promise<boolean>
@@ -20,6 +22,8 @@ export interface AppContextValue {
   removeAssignment: (assignment: Assignment) => Promise<boolean>
   saveDailyNote: (date: string, note: string) => Promise<boolean>
   autoAssignPreferredWorkers: () => Promise<number | null>
+  createAbsence: (value: NewWorkerAbsence) => Promise<boolean>
+  removeAbsence: (id: string) => Promise<boolean>
   monday: Date
   weekDays: { label: string; date: Date }[]
   selectedWeekDate: Date

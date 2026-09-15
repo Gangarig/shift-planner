@@ -4,8 +4,9 @@
 
 - Authenticated, role-protected planner with owner-managed invitations.
 - Database-enforced worker availability, public-holiday closure, and double-booking protection.
-- Multiple workers per station, daily notes, preferred stations, manual overrides, sharing, and A4 printing.
+- Multiple workers per station, shift times, dated absences/delays, daily notes, preferred stations, manual overrides, sharing, A4 printing, and CSV export.
 - RLS on every exposed table, immediate disabled-account blocking, protected audit records, and restricted function access.
+- Owner-visible audit history and live schedule refresh across signed-in devices.
 - Clean CI checks, pinned dependencies, zero known production dependency vulnerabilities, and recoverable error/404 screens.
 
 ## Required before using real employee data
@@ -16,6 +17,7 @@
 - Complete a signed-in phone/desktop walkthrough for invitations, password reset, every role, drag/drop, touch assignment, sharing, and printing.
 - Add privacy information, an employee-data retention policy, support contact, terms appropriate to the business, and the required processor agreements. Obtain legal review rather than treating repository text as legal advice.
 - Choose a production domain/host and add monitoring for frontend errors, Edge Function failures, database health, and deployment failures.
+- Decide whether schedules need draft/published approval, edit locking, and employee notifications before broader use.
 
 ## Required before selling as a multi-company SaaS
 

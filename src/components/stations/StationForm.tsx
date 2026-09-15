@@ -11,6 +11,8 @@ function StationForm({onCreateStation}:StationFormProps) {
     const [saving,setSaving]=useState(false)
     const [stationsName,setStationName]=useState<string>('');
     const [stationStatus,setStationStatus]=useState<boolean>(true)
+    const [startTime,setStartTime]=useState('')
+    const [endTime,setEndTime]=useState('')
 
     async function handleSubmit (e:React.FormEvent) {
         e.preventDefault()
@@ -18,7 +20,9 @@ function StationForm({onCreateStation}:StationFormProps) {
 
         const newStation :NewStation = {
             name:stationsName.trim(),
-            active:stationStatus 
+            active:stationStatus,
+            defaultStartTime: startTime || null,
+            defaultEndTime: endTime || null,
         }
         if (saving) return
         setSaving(true)
@@ -27,6 +31,7 @@ function StationForm({onCreateStation}:StationFormProps) {
         if (!saved) return
         setStationName('')
         setStationStatus(true)
+        setStartTime(''); setEndTime('')
 
     }
 
@@ -34,10 +39,12 @@ function StationForm({onCreateStation}:StationFormProps) {
     <form onSubmit={handleSubmit}>
       <Stack>
         <TextInput required label="Station name" value={stationsName} onChange={(e) => setStationName(e.currentTarget.value)} />
+        <TextInput type="time" label="Default start time" value={startTime} onChange={(e) => setStartTime(e.currentTarget.value)} />
+        <TextInput type="time" label="Default end time" value={endTime} error={startTime && endTime && startTime >= endTime ? 'End time must be after start time' : undefined} onChange={(e) => setEndTime(e.currentTarget.value)} />
         <SegmentedControl fullWidth value={stationStatus ? 'active' : 'inactive'}
           onChange={(value) => setStationStatus(value === 'active')}
           data={[{ label: 'Active', value: 'active' }, { label: 'Inactive', value: 'inactive' }]} />
-        <Button type="submit" loading={saving}>Create station</Button>
+        <Button type="submit" loading={saving} disabled={!!(startTime && endTime && startTime >= endTime)}>Create station</Button>
       </Stack>
     </form>
   )

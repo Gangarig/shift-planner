@@ -21,7 +21,7 @@ export async function removeAssignment(assignment: Assignment) {
 }
 
 export async function updateAssignment(assignment: Assignment) {
-  const { error } = await supabase.from('assignments').update({ workerId: assignment.workerId, stationId: assignment.stationId, date: toDateKey(assignment.date), note: assignment.note, source: assignment.source ?? 'manual' }).eq('id', assignment.id).select('id').single()
+  const { error } = await supabase.from('assignments').update({ workerId: assignment.workerId, stationId: assignment.stationId, date: toDateKey(assignment.date), note: assignment.note, source: assignment.source ?? 'manual', startTime: assignment.startTime, endTime: assignment.endTime }).eq('id', assignment.id).select('id').single()
   if (error) throw error
 }
 

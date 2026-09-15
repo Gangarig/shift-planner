@@ -31,7 +31,7 @@ function WorkerAvailability() {
               const holiday = austrianPublicHoliday(day.date)
               if (holiday) return <td key={date} className="holiday-cell" aria-label={`${station.name}, ${date}, closed for ${holiday}`} />
               const cellAssignments = weekAssignments.filter(item => item.stationId === station.id && toDateKey(item.date) === date)
-              return <td key={date}><div className={`schedule-cell dashboard-schedule-cell ${cellAssignments.length ? 'filled' : 'empty'}`}>{cellAssignments.length ? cellAssignments.map(assignment => <div className="cell-assignment" key={assignment.id}><strong>{workers.find(item => item.id === assignment.workerId)?.name ?? 'Unknown worker'}</strong>{assignment.note && <span>{assignment.note}</span>}</div>) : <span>{station.active ? 'Open' : '—'}</span>}</div></td>
+              return <td key={date}><div className={`schedule-cell dashboard-schedule-cell ${cellAssignments.length ? 'filled' : 'empty'}`}>{cellAssignments.length ? cellAssignments.map(assignment => <div className="cell-assignment" key={assignment.id}><strong>{workers.find(item => item.id === assignment.workerId)?.name ?? 'Unknown worker'}</strong>{(assignment.startTime || assignment.endTime) && <span>{assignment.startTime || '?'}–{assignment.endTime || '?'}</span>}{assignment.note && <span>{assignment.note}</span>}</div>) : <span>{station.active ? 'Open' : '—'}</span>}</div></td>
             })}
           </tr>)}</tbody>
         </table>

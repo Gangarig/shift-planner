@@ -4,6 +4,7 @@ const navLinks = [
   { label: "Workers", to: "/workers",roles: ["manager", "admin", "owner"] },
   { label: "Stations", to: "/stations",roles: ["manager", "admin", "owner"] },
   { label: "Team & Access", to: "/team", roles: ["owner"] },
+  { label: "Audit history", to: "/audit", roles: ["owner"] },
   { label: "Settings", to: "/settings",roles: ["admin", "owner"] },
 ];
 

@@ -5,6 +5,8 @@ export interface Assignment {
     date:Date,
     note?:string | null,
     source?: 'manual' | 'preferred',
+    startTime?: string | null,
+    endTime?: string | null,
 }
 
 export type NewAssignment = Omit<Assignment,"id">
