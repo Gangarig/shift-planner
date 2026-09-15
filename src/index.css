@@ -268,6 +268,7 @@ body {
 .dashboard-roster-worker:hover { background: transparent; border-color: transparent; }
 .dashboard-roster-link { cursor: pointer; }
 .dashboard-roster-link:hover { background: var(--app-assignment); border-color: var(--app-border); }
+.worker-options-menu { max-height: min(420px, 70dvh); overflow-y: auto; overscroll-behavior: contain; }
 .roster-avatar { display: grid; place-items: center; flex-shrink: 0; width: 27px; height: 27px; border-radius: 50%; background: var(--app-surface-soft); font-size: 9px; font-weight: 700; }
 .dashboard-page h1, .planner-page h1 { font-size: clamp(1.35rem, 2vw, 1.75rem); }
 .dashboard-summary .mantine-SimpleGrid-root { gap: 8px; }

@@ -1,18 +1,19 @@
-import { Badge, Button, Group, Paper, Stack, Text } from '@mantine/core'
+import { Badge, Button, Group, Menu, Paper, Stack, Text } from '@mantine/core'
 import { Link } from 'react-router-dom'
 import useApp from '../../hooks/useApp'
 import { toDateKey } from '../../lib/dateUtils'
 import { austrianPublicHoliday } from '../../lib/austrianHolidays'
 import { useAuth } from '../../context/AuthContext'
-import { useNavigate } from 'react-router-dom'
+import type { WorkerStatus } from '../../types/Worker'
 
 const statusColors = { available: 'green', late: 'orange', sick: 'red', holiday: 'yellow', inactive: 'gray' } as const
 
 function WorkerAvailability() {
-  const { workers, assignments, stations, weekDays } = useApp()
+  const { workers, assignments, stations, weekDays, updateWorker } = useApp()
   const { user } = useAuth()
-  const navigate = useNavigate()
-  const canOpenWorkers = user?.role === 'owner' || user?.role === 'admin'
+  const canManageWorkers = user?.role === 'owner' || user?.role === 'admin' || user?.role === 'manager'
+  const statuses: WorkerStatus[] = ['available', 'late', 'sick', 'holiday', 'inactive']
+  const statusLabel = (status: WorkerStatus) => status === 'holiday' ? 'Vacation' : status[0].toUpperCase() + status.slice(1)
   const dates = new Set(weekDays.map(day => toDateKey(day.date)))
   const weekAssignments = assignments.filter(assignment => dates.has(toDateKey(assignment.date)))
   const dateLabel = (date: Date) => date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
@@ -46,8 +47,8 @@ function WorkerAvailability() {
           <div className="roster-list">{workers.map(worker => {
             const count = weekAssignments.filter(assignment => assignment.workerId === worker.id).length
             const content = <><span className="roster-avatar">{worker.name.slice(0, 2).toUpperCase()}</span><span><strong>{worker.name}</strong><small>{worker.status} · {count} {count === 1 ? 'shift' : 'shifts'}</small></span><Badge ml="auto" size="xs" variant="dot" color={statusColors[worker.status]}>{worker.status}</Badge></>
-            return canOpenWorkers
-              ? <button type="button" className="roster-worker dashboard-roster-worker dashboard-roster-link" key={worker.id} onClick={() => navigate(`/workers?worker=${worker.id}`)} aria-label={`Open ${worker.name}'s worker details`}>{content}</button>
+            return canManageWorkers
+              ? <Menu key={worker.id} shadow="md" width={220} position="bottom-end"><Menu.Target><button type="button" className="roster-worker dashboard-roster-worker dashboard-roster-link" aria-label={`Quick options for ${worker.name}`}>{content}</button></Menu.Target><Menu.Dropdown className="worker-options-menu"><Menu.Label>Status</Menu.Label>{statuses.map(status => <Menu.Item key={status} onClick={() => void updateWorker({ ...worker, status })}>{statusLabel(status)}{worker.status === status ? ' ✓' : ''}</Menu.Item>)}<Menu.Divider /><Menu.Label>Main station</Menu.Label><Menu.Item onClick={() => void updateWorker({ ...worker, preferredStationId: null })}>No main station{!worker.preferredStationId ? ' ✓' : ''}</Menu.Item>{stations.filter(station => station.active).map(station => <Menu.Item key={station.id} onClick={() => void updateWorker({ ...worker, preferredStationId: station.id })}>{station.name}{worker.preferredStationId === station.id ? ' ✓' : ''}</Menu.Item>)}</Menu.Dropdown></Menu>
               : <div className="roster-worker dashboard-roster-worker" key={worker.id}>{content}</div>
           })}</div>
         </Stack>
