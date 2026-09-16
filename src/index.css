@@ -315,11 +315,23 @@ body {
 
 @page {
   size: A4 landscape;
-  margin: 8mm;
+  margin: 6mm;
 }
 
 @media print {
-  html, body { background: #fff !important; color: #111 !important; }
+  html, body {
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    background: #fff !important;
+    color: #000 !important;
+    print-color-adjust: economy;
+    -webkit-print-color-adjust: economy;
+  }
+  *, *::before, *::after {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
   .mantine-AppShell-header,
   .planner-actions,
   .planner-week-controls,
@@ -328,30 +340,71 @@ body {
   .planner-save-status,
   .mantine-Alert-root { display: none !important; }
   .mantine-AppShell-main { padding: 0 !important; }
-  .page-container { width: 100% !important; max-width: none !important; }
-  .planner-heading { display: block !important; margin-bottom: 1mm; }
+  .page-container,
+  .planner-page { width: 100% !important; max-width: none !important; padding: 0 !important; margin: 0 !important; }
+  .planner-heading { display: block !important; margin: 0 0 1mm !important; }
   .planner-heading .mantine-Text-root { display: none; }
-  .planner-heading .mantine-Title-root { font-size: 15pt; color: #111; }
-  .print-week-title { display: block; margin-bottom: 3mm; font-size: 9pt; color: #333; }
+  .planner-heading .mantine-Title-root { font-size: 13pt; line-height: 1.1; color: #000 !important; }
+  .print-week-title { display: block; margin: 0 0 2mm; font-size: 8pt; line-height: 1.1; color: #000 !important; }
   .schedule-layout { display: block; }
-  .schedule-scroll { max-height: none; overflow: visible; border: 1px solid #777; border-radius: 0; }
+  .schedule-scroll {
+    width: 100% !important;
+    max-height: none;
+    overflow: visible;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: #fff !important;
+  }
   .schedule-table { width: 100%; min-width: 0; table-layout: fixed; border-collapse: collapse; }
   .schedule-table thead { display: table-header-group; }
   .schedule-table tr { break-inside: avoid; }
   .schedule-table th,
-  .schedule-table td { position: static !important; border: 1px solid #999; color: #111; background: #fff !important; }
-  .schedule-table th:first-child { width: 19%; }
-  .schedule-table thead th { padding: 1.5mm; font-size: 7.5pt; }
-  .schedule-table tbody th { padding: 1.5mm; font-size: 7.5pt; }
-  .schedule-table th span { margin-top: .5mm; color: #444; font-size: 6.5pt; }
-  .schedule-table .today { box-shadow: none; }
-  .schedule-table .holiday-column { background: #ececec !important; }
-  .schedule-table td.holiday-cell { background: #f1f1f1 !important; }
-  .schedule-table td { padding: .8mm; }
+  .schedule-table td {
+    position: static !important;
+    height: auto !important;
+    border: .25mm solid #000 !important;
+    color: #000 !important;
+    background: #fff !important;
+  }
+  .schedule-table th:first-child { width: 18%; }
+  .schedule-table thead th { padding: .8mm 1mm; font-size: 7pt; line-height: 1.05; }
+  .schedule-table tbody th { padding: .8mm 1mm; font-size: 7pt; line-height: 1.05; }
+  .schedule-table th span { margin-top: .2mm; color: #000 !important; font-size: 6pt; }
+  .schedule-table th small { color: #000 !important; font-size: 5.5pt; }
+  .schedule-table .holiday-column,
+  .schedule-table td.holiday-cell { background: #fff !important; }
+  .schedule-table td { padding: .5mm .8mm; vertical-align: top; }
   .schedule-cell,
-  .compact .schedule-cell { min-height: 0; padding: 1.3mm; border: 0; color: #111; background: #fff !important; }
-  .schedule-cell.filled { background: #eef4f8 !important; }
-  .schedule-cell strong { font-size: 7pt; }
-  .schedule-cell span { margin-top: .5mm; font-size: 6pt; color: #444; }
-  .schedule-cell.empty span { color: #777; }
+  .compact .schedule-cell {
+    min-height: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    color: #000 !important;
+    background: #fff !important;
+  }
+  .schedule-cell.filled { background: #fff !important; }
+  .cell-assignment {
+    min-height: 0 !important;
+    margin: 0 0 .5mm !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    color: #000 !important;
+    background: transparent !important;
+    text-align: left;
+  }
+  .cell-assignment:last-child { margin-bottom: 0 !important; }
+  .schedule-cell strong { font-size: 6.5pt; line-height: 1.05; color: #000 !important; }
+  .schedule-cell span { margin-top: .1mm; font-size: 5.5pt; line-height: 1.05; color: #000 !important; }
+  .schedule-cell.empty span { display: none !important; }
+  .day-note-button {
+    margin: .2mm 0 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    color: #000 !important;
+    background: transparent !important;
+    font-size: 5.5pt !important;
+    line-height: 1.05;
+  }
 }
