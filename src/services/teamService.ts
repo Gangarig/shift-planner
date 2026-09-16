@@ -21,7 +21,15 @@ type TeamAction =
 
 async function invoke<T>(body: TeamAction): Promise<T> {
   const { data, error } = await supabase.functions.invoke('manage-team', { body })
-  if (error) throw error
+  if (error) {
+    let message = error.message
+    const context = 'context' in error ? error.context : null
+    if (context instanceof Response) {
+      const details = await context.json().catch(() => null) as { error?: string } | null
+      if (details?.error) message = details.error
+    }
+    throw new Error(message)
+  }
   if (data?.error) throw new Error(data.error)
   return data as T
 }

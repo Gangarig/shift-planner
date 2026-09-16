@@ -77,9 +77,12 @@ Deno.serve(async (req) => {
 
     if (action === 'invite') {
       const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
-      const { count, error: rateError } = await admin.from('security_audit_log').select('id', { count: 'exact', head: true }).eq('actor_id', callerId).eq('action', 'invite').gte('created_at', oneHourAgo)
+      const { data: recentInvites, error: rateError } = await admin.from('security_audit_log').select('created_at').eq('action', 'invite').gte('created_at', oneHourAgo).order('created_at', { ascending: true })
       if (rateError) throw rateError
-      if ((count ?? 0) >= 10) return response({ error: 'Invitation limit reached. Try again in one hour.' }, 429)
+      if ((recentInvites?.length ?? 0) >= 2) {
+        const retryAt = new Date(new Date(recentInvites![0].created_at).getTime() + 60 * 60 * 1000)
+        return response({ error: `Supabase Free email limit reached (2 emails per hour). Try again after ${retryAt.toISOString()}.` }, 429)
+      }
       const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : ''
       const fullName = typeof body.fullName === 'string' ? body.fullName.trim() : ''
       const role = body.role
@@ -160,10 +163,9 @@ Deno.serve(async (req) => {
     if (action === 'delete-account') {
       const { data, error: userError } = await admin.auth.admin.getUserById(userId)
       if (userError) throw userError
-      const deletedEmail = data.user.email ?? ''
       const { error } = await admin.auth.admin.deleteUser(userId)
       if (error) throw error
-      await admin.from('security_audit_log').insert({ actor_id: callerId, action: 'delete_account', entity_type: 'profile', metadata: { deleted_user_id: userId, deleted_email: deletedEmail } })
+      await admin.from('security_audit_log').insert({ actor_id: callerId, action: 'delete_account', entity_type: 'profile', entity_id: data.user.id })
       return response({ success: true })
     }
 
