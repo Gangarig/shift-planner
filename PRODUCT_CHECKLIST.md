@@ -15,6 +15,8 @@ This release keeps the existing dashboard, planner, workers, stations, and setti
 - [x] Retention: complete audit CSV export and automatic deletion of audit records older than one year.
 - [x] Distribution: phone share sheet/WhatsApp-friendly weekly plan and A4 landscape full-grid printing.
 - [x] Austrian public holidays: automatic fixed/movable dates, closed blank columns, and database-enforced assignment rejection.
+- [x] Betriebsurlaub: owner/admin date ranges close the workplace, preserve underlying assignments, and block new bookings at database level.
+- [x] Dashboard planning: managers, admins, and owners can fill main stations, publish, print, and open the full planner.
 - [x] Data: verify returned rows on writes; show errors; preserve forms after failed saves.
 - [x] Security: close legacy public worker access and check role-based database writes.
 - [x] Authentication: prevent stale profile requests from restoring a signed-out session.

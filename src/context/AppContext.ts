@@ -5,6 +5,7 @@ import type { Assignment, NewAssignment } from '../types/Assignment'
 import type { DailyNote } from '../types/DailyNote'
 import type { NewWorkerAbsence, WorkerAbsence } from '../types/WorkerAbsence'
 import type { WeeklyPlan } from '../types/WeeklyPlan'
+import type { CompanyClosure, NewCompanyClosure } from '../types/CompanyClosure'
 
 export interface AppContextValue {
   workers: Worker[]
@@ -13,6 +14,7 @@ export interface AppContextValue {
   dailyNotes: DailyNote[]
   absences: WorkerAbsence[]
   weeklyPlan: WeeklyPlan | null
+  companyClosures: CompanyClosure[]
   createWorker: (worker: NewWorker) => Promise<boolean>
   updateWorker: (worker: Worker) => Promise<boolean>
   removeWorker: (worker: Worker) => Promise<boolean>
@@ -27,6 +29,8 @@ export interface AppContextValue {
   createAbsence: (value: NewWorkerAbsence) => Promise<boolean>
   removeAbsence: (id: string) => Promise<boolean>
   publishWeeklyPlan: () => Promise<boolean>
+  createCompanyClosure: (value: NewCompanyClosure) => Promise<boolean>
+  removeCompanyClosure: (id: string) => Promise<boolean>
   monday: Date
   weekDays: { label: string; date: Date }[]
   selectedWeekDate: Date

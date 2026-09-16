@@ -9,20 +9,20 @@ body {
 }
 
 [data-mantine-color-scheme='light'] {
-  --mantine-color-body: #edf1f2;
-  --mantine-color-text: #26343d;
-  --mantine-color-dimmed: #65727a;
-  --mantine-color-default: #f7f9f9;
-  --mantine-color-default-hover: #e9eef0;
-  --mantine-color-default-border: #cad4d8;
+  --mantine-color-body: #e8e3da;
+  --mantine-color-text: #302f2b;
+  --mantine-color-dimmed: #6d6961;
+  --mantine-color-default: #f1ede5;
+  --mantine-color-default-hover: #e2dcd2;
+  --mantine-color-default-border: #c7beb0;
   --mantine-color-blue-light: rgba(71, 127, 167, 0.13);
   --mantine-color-blue-light-hover: rgba(71, 127, 167, 0.19);
   --mantine-color-blue-light-color: #295978;
-  --app-surface-soft: #e4eaec;
-  --app-surface-raised: #f7f9f9;
-  --app-border: #cad4d8;
-  --app-assignment: #dce9ee;
-  --app-empty: #f7f9f9;
+  --app-surface-soft: #ddd7cc;
+  --app-surface-raised: #f1ede5;
+  --app-border: #c7beb0;
+  --app-assignment: #d7e0df;
+  --app-empty: #f1ede5;
 }
 
 [data-mantine-color-scheme='dark'] {

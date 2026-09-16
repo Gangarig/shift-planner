@@ -27,6 +27,8 @@ Select a worker and click a cell, or drag a worker onto the grid. A station can 
 
 Austria's 13 nationwide statutory public holidays are automatically marked closed. Their planner cells remain blank, they are excluded from capacity totals, and assignments are rejected in both the interface and database. Fixed and Easter-based holidays are calculated for any year.
 
+Owners and admins can add company-wide Betriebsurlaub ranges from Settings. Closure dates appear blank and closed throughout the schedule, new assignments are rejected by the database, and the underlying schedule is preserved in case the closure is later removed.
+
 Use **Share weekly plan** to send a text version through the phone share sheet, including WhatsApp. Use **Print A4** for a clean landscape printout of the complete weekly grid.
 
 ## Database setup

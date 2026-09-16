@@ -17,6 +17,8 @@ import { errorMessage } from '../lib/plannerRules'
 import { getMondayOfWeek, getWeekDays, toDateKey } from '../lib/dateUtils'
 import type { WeeklyPlan } from '../types/WeeklyPlan'
 import { loadWeeklyPlan, publishWeeklyPlan } from '../services/weeklyPlanService'
+import type { CompanyClosure, NewCompanyClosure } from '../types/CompanyClosure'
+import { createCompanyClosure, loadCompanyClosures, removeCompanyClosure } from '../services/companyClosureService'
 
 function AppProvider() {
   const [workers, setWorkers] = useState<Worker[]>([])
@@ -25,6 +27,7 @@ function AppProvider() {
   const [dailyNotes, setDailyNotes] = useState<DailyNote[]>([])
   const [absences, setAbsences] = useState<WorkerAbsence[]>([])
   const [weeklyPlan, setWeeklyPlan] = useState<WeeklyPlan | null>(null)
+  const [companyClosures, setCompanyClosures] = useState<CompanyClosure[]>([])
   const [loadingWorkers, setLoadingWorkers] = useState(false)
   const [loadingStations, setLoadingStations] = useState(false)
   const [loadingAssignments, setLoadingAssignments] = useState(false)
@@ -43,7 +46,7 @@ function AppProvider() {
 
   // The date key is the deliberate refresh boundary; both loaders read this render's week.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { void Promise.all([refreshAssignments(), refreshDailyNotes(), refreshAbsences(), refreshWeeklyPlan()]) }, [weekStart])
+  useEffect(() => { void Promise.all([refreshAssignments(), refreshDailyNotes(), refreshAbsences(), refreshWeeklyPlan(), refreshCompanyClosures()]) }, [weekStart])
 
   useEffect(() => {
     const channel = supabase.channel(`planner-live-${weekStart}`)
@@ -53,6 +56,7 @@ function AppProvider() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'workers' }, () => { void refreshWorkers() })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'stations' }, () => { void refreshStations() })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'weekly_plans' }, () => { void Promise.all([refreshWeeklyPlan(), refreshAssignments(), refreshDailyNotes()]) })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'company_closures' }, () => { void Promise.all([refreshCompanyClosures(), refreshAssignments()]) })
       .subscribe()
     return () => { void supabase.removeChannel(channel) }
     // Reconnect for the selected week so callbacks use its date boundaries.
@@ -105,6 +109,21 @@ function AppProvider() {
   async function refreshWeeklyPlan() {
     try { setWeeklyPlan(await loadWeeklyPlan(weekStart)) }
     catch (error) { notifications.show({ color: 'red', title: 'Plan status failed', message: errorMessage(error) }) }
+  }
+
+  async function refreshCompanyClosures() {
+    try { setCompanyClosures(await loadCompanyClosures()) }
+    catch (error) { notifications.show({ color: 'red', title: 'Company closure loading failed', message: errorMessage(error) }) }
+  }
+
+  async function handleCreateCompanyClosure(value: NewCompanyClosure) {
+    try { await createCompanyClosure(value); await Promise.all([refreshCompanyClosures(), refreshAssignments()]); notifications.show({ color: 'green', title: 'Betriebsurlaub saved', message: 'The selected dates are now closed.' }); return true }
+    catch (error) { notifications.show({ color: 'red', title: 'Betriebsurlaub failed', message: errorMessage(error) }); return false }
+  }
+
+  async function handleRemoveCompanyClosure(id: string) {
+    try { await removeCompanyClosure(id); await refreshCompanyClosures(); notifications.show({ color: 'green', title: 'Betriebsurlaub removed', message: 'The selected dates are open again.' }); return true }
+    catch (error) { notifications.show({ color: 'red', title: 'Removal failed', message: errorMessage(error) }); return false }
   }
 
   async function handlePublishWeeklyPlan() {
@@ -234,7 +253,7 @@ function AppProvider() {
     catch (error) { setWorkersError('Could not delete worker'); notifications.show({ color: 'red', title: 'Worker failed', message: errorMessage(error) }) ; return false }
   }
 
-  return <AppContext.Provider value={{ workers, stations, assignments, dailyNotes, absences, weeklyPlan, createWorker: handleCreateWorker, updateWorker: handleUpdateWorker, removeWorker: handleRemoveWorker, createStation: handleCreateStation, updateStation: handleUpdateStation, removeStation: handleRemoveStation, createAssignment: handleCreateAssignment, updateAssignment: handleUpdateAssignment, removeAssignment: handleRemoveAssignment, saveDailyNote: handleSaveDailyNote, autoAssignPreferredWorkers: handleAutoAssignPreferredWorkers, createAbsence: handleCreateAbsence, removeAbsence: handleRemoveAbsence, publishWeeklyPlan: handlePublishWeeklyPlan, monday, weekDays, selectedWeekDate, setSelectedWeekDate, loadingWorkers, workersError, loadingStations, stationsError, loadingAssignments, assignmentsError }}><Outlet /></AppContext.Provider>
+  return <AppContext.Provider value={{ workers, stations, assignments, dailyNotes, absences, weeklyPlan, companyClosures, createWorker: handleCreateWorker, updateWorker: handleUpdateWorker, removeWorker: handleRemoveWorker, createStation: handleCreateStation, updateStation: handleUpdateStation, removeStation: handleRemoveStation, createAssignment: handleCreateAssignment, updateAssignment: handleUpdateAssignment, removeAssignment: handleRemoveAssignment, saveDailyNote: handleSaveDailyNote, autoAssignPreferredWorkers: handleAutoAssignPreferredWorkers, createAbsence: handleCreateAbsence, removeAbsence: handleRemoveAbsence, publishWeeklyPlan: handlePublishWeeklyPlan, createCompanyClosure: handleCreateCompanyClosure, removeCompanyClosure: handleRemoveCompanyClosure, monday, weekDays, selectedWeekDate, setSelectedWeekDate, loadingWorkers, workersError, loadingStations, stationsError, loadingAssignments, assignmentsError }}><Outlet /></AppContext.Provider>
 }
 
 export default AppProvider

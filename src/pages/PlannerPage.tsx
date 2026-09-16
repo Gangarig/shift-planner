@@ -33,7 +33,7 @@ export default function PlannerPage() {
   const [confirmPublish, setConfirmPublish] = useState(false)
   const days = app.weekDays
   const dates = new Set(days.map(d => toDateKey(d.date)))
-  const weekAssignments = app.assignments.filter(a => dates.has(toDateKey(a.date)))
+  const weekAssignments = app.assignments.filter(a => dates.has(toDateKey(a.date)) && !app.companyClosures.some(item => item.start_date <= toDateKey(a.date) && item.end_date >= toDateKey(a.date)))
   const stations = app.stations.filter(s => s.name.toLowerCase().includes(search.toLowerCase()))
   const workers = app.workers.filter(w => w.name.toLowerCase().includes(workerSearch.toLowerCase()))
   const sourceAssignment = selection?.kind === 'assignment' ? app.assignments.find(a => a.id === selection.id) : undefined
@@ -42,14 +42,16 @@ export default function PlannerPage() {
   const isPublished = app.weeklyPlan?.status === 'published'
   const dateLabel = (date: Date) => date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
   const blockingAbsence = (workerId: string, date: Date) => app.absences.find(item => item.workerId === workerId && item.status !== 'late' && item.startDate <= toDateKey(date) && item.endDate >= toDateKey(date))
+  const companyClosure = (date: Date) => app.companyClosures.find(item => item.start_date <= toDateKey(date) && item.end_date >= toDateKey(date))
 
   function weeklyPlanText() {
     const week = `${dateLabel(days[0].date)} – ${dateLabel(days[4].date)}, ${days[0].date.getFullYear()}`
     const lines = [`Shift Planner`, `Week ${week}`]
     for (const day of days) {
       const holiday = austrianPublicHoliday(day.date)
+      const closure = companyClosure(day.date)
       lines.push('', day.date.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' }))
-      if (holiday) { lines.push(`Closed — ${holiday}`); continue }
+      if (holiday || closure) { lines.push(`Closed — ${holiday ?? closure?.label}`); continue }
       const dailyNote = app.dailyNotes.find(item => item.date === toDateKey(day.date))?.note
       if (dailyNote) lines.push(`Note: ${dailyNote}`)
       for (const station of app.stations) {
@@ -92,6 +94,8 @@ export default function PlannerPage() {
     const assignment = picked.kind === 'assignment' ? app.assignments.find(a => a.id === picked.id) : undefined
     if (picked.kind === 'assignment' && !assignment) { setMessage('That assignment no longer exists. Refresh the planner.'); return }
     const id = assignment?.workerId ?? picked.id
+    const closure = companyClosure(date)
+    if (closure) { setMessage(`${closure.label}: the workplace is closed on this date.`); return }
     const absence = blockingAbsence(id, date)
     if (absence) { setMessage(`${absence.status === 'holiday' ? 'Vacation' : 'Sick leave'} is recorded for this worker on this date.`); return }
     const problem = assignmentProblem(app.workers.find(w => w.id === id), app.stations.find(s => s.id === stationId), date, app.assignments, assignment?.id)
@@ -110,6 +114,8 @@ export default function PlannerPage() {
     if (!editor) return
     const date = fromDateKey(editor.date)
     const existing = app.assignments.find(a => a.id === editor.id)
+    const closure = companyClosure(date)
+    if (closure) { setMessage(`${closure.label}: the workplace is closed on this date.`); return }
     // A note-only edit remains valid when a worker later becomes unavailable.
     const noteOnly = existing && existing.workerId === workerId
     const absence = blockingAbsence(workerId, date)
@@ -124,7 +130,7 @@ export default function PlannerPage() {
     const next = new Date(app.monday); next.setDate(next.getDate() + offset)
     app.setSelectedWeekDate(next); setSelection(null); setMessage('')
   }
-  const workingDays = days.filter(day => !austrianPublicHoliday(day.date))
+  const workingDays = days.filter(day => !austrianPublicHoliday(day.date) && !companyClosure(day.date))
   const coverage = app.stations.filter(s => s.active).length * workingDays.length
   return <Stack className="page-container planner-page" gap="sm">
     <Group justify="space-between" className="planner-heading">
@@ -146,13 +152,14 @@ export default function PlannerPage() {
         <TextInput className="planner-station-search" placeholder="Find a station…" aria-label="Find a station" value={search} onChange={e => setSearch(e.currentTarget.value)} />
         <div className={'schedule-scroll ' + density}>
           <table className="schedule-table">
-            <thead><tr><th scope="col">Station</th>{days.map(d => { const date = toDateKey(d.date); const holiday = austrianPublicHoliday(d.date); const dailyNote = app.dailyNotes.find(n => n.date === date); return <th scope="col" key={d.label} className={`${date === toDateKey(new Date()) ? 'today ' : ''}${holiday ? 'holiday-column' : ''}`}>{d.label.slice(0, 3)}<span>{dateLabel(d.date)}</span>{holiday ? <small>Closed · {holiday}</small> : <button type="button" className="day-note-button" onClick={() => { setDayEditor(date); setDayNote(dailyNote?.note ?? '') }}>{dailyNote ? `Note: ${dailyNote.note}` : canEdit ? '+ Daily note' : ''}</button>}</th> })}</tr></thead>
+          <thead><tr><th scope="col">Station</th>{days.map(d => { const date = toDateKey(d.date); const holiday = austrianPublicHoliday(d.date); const closure = companyClosure(d.date); const closedLabel = holiday ?? closure?.label; const dailyNote = app.dailyNotes.find(n => n.date === date); return <th scope="col" key={d.label} className={`${date === toDateKey(new Date()) ? 'today ' : ''}${closedLabel ? 'holiday-column' : ''}`}>{d.label.slice(0, 3)}<span>{dateLabel(d.date)}</span>{closedLabel ? <small>Closed · {closedLabel}</small> : <button type="button" className="day-note-button" onClick={() => { setDayEditor(date); setDayNote(dailyNote?.note ?? '') }}>{dailyNote ? `Note: ${dailyNote.note}` : canEdit ? '+ Daily note' : ''}</button>}</th> })}</tr></thead>
             <tbody>{stations.map(station => <tr key={station.id}><th scope="row">{station.name}{!station.active && <small>Inactive</small>}</th>{days.map(day => {
               const date = toDateKey(day.date)
               const holiday = austrianPublicHoliday(day.date)
+              const closure = companyClosure(day.date)
               const cellKey = station.id + date
               const cellAssignments = weekAssignments.filter(a => a.stationId === station.id && toDateKey(a.date) === date)
-              if (holiday) return <td key={date} className="holiday-cell" aria-label={`${station.name}, ${date}, closed for ${holiday}`} />
+              if (holiday || closure) return <td key={date} className="holiday-cell" aria-label={`${station.name}, ${date}, closed for ${holiday ?? closure?.label}`} />
               return <td key={date} className={target === cellKey ? 'drop-target' : ''} onDragOver={e => { if (canEdit && dragging.current && station.active && !busy) { e.preventDefault(); e.dataTransfer.dropEffect = dragging.current.kind === 'assignment' ? 'move' : 'copy'; setTarget(cellKey) } }} onDragLeave={() => setTarget('')} onDrop={e => { e.preventDefault(); setTarget(''); const picked = dragging.current; dragging.current = null; void place(station.id, day.date, picked) }}>
                 <div className={'schedule-cell ' + (cellAssignments.length ? 'filled' : 'empty')} title={canEdit && station.active ? `Click to assign a worker to ${station.name}` : undefined} onClick={() => { if (canEdit && station.active && !busy && !loading) openCell(station.id, day.date) }}>
                   {cellAssignments.map(assignment => { const worker = app.workers.find(w => w.id === assignment.workerId); return <button type="button" className="cell-assignment" key={assignment.id} disabled={busy || loading} aria-label={(worker?.name ?? 'Unknown worker') + ', ' + station.name + ', ' + date} onClick={event => { event.stopPropagation(); openCell(station.id, day.date, assignment) }} draggable={canEdit && !busy}
