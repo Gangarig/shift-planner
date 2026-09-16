@@ -277,8 +277,9 @@ body {
 .roster-worker.selected, .roster-worker:enabled:hover { background: var(--app-assignment); border-color: var(--app-border); }
 .dashboard-schedule-scroll { max-height: none; }
 .dashboard-schedule-cell { cursor: default; }
-.dashboard-roster { max-height: 48dvh; overflow: hidden; }
-.dashboard-roster .roster-list { max-height: calc(48dvh - 45px); }
+.dashboard-roster { overflow: hidden; }
+.dashboard-roster > .mantine-Stack-root { height: 100%; }
+.dashboard-roster .roster-list { min-height: 0; overflow-y: auto; }
 .dashboard-roster-worker { cursor: default; }
 .dashboard-roster-worker:hover { background: transparent; border-color: transparent; }
 .dashboard-roster-link { cursor: pointer; }
@@ -307,6 +308,11 @@ body {
 .mantine-Title-root { letter-spacing: -.025em; }
 .print-week-title { display: none; }
 @media (max-width: 58em) { .schedule-layout { grid-template-columns: minmax(0, 1fr); } .schedule-roster { position: static; } .roster-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); max-height: 180px; } }
+@media (min-width: 58.01em) {
+  .dashboard-schedule-layout { align-items: stretch; }
+  .dashboard-roster { height: 100%; max-height: none; }
+  .dashboard-roster .roster-list { flex: 1; max-height: none; }
+}
 @media (max-width: 48em) {
   .mantine-AppShell-main {
     padding-bottom: calc(12rem + env(safe-area-inset-bottom));
