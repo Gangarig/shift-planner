@@ -10,6 +10,7 @@ import { errorMessage } from '../lib/plannerRules'
 const roleOptions = [
   { value: 'worker', label: 'Worker — view schedules' },
   { value: 'manager', label: 'Manager — manage schedules and records' },
+  { value: 'accountant', label: 'Accountant — overtime, leave, and payslips' },
   { value: 'admin', label: 'Admin — manager access and settings' },
   { value: 'owner', label: 'Owner — full access' },
 ]

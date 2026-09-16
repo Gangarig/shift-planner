@@ -17,12 +17,13 @@ const TeamAccessPage = lazy(() => import('../pages/TeamAccessPage'))
 const Unauthorized = lazy(() => import('../pages/Unauthorized'))
 const NotFoundPage = lazy(() => import('../pages/NotFoundPage'))
 const AuditPage = lazy(() => import('../pages/AuditPage'))
+const PayrollPage = lazy(() => import('../pages/PayrollPage'))
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
   { path: '/forgot-password', element: <ForgotPasswordPage /> },
   { path: '/reset-password', element: <ResetPasswordPage /> },
-  { element: <ProtectedRoute allowedRoles={['worker', 'manager', 'admin', 'owner']} />, children: [
+  { element: <ProtectedRoute allowedRoles={['worker', 'manager', 'admin', 'owner', 'accountant']} />, children: [
     { element: <AppProvider />, children: [
       { path: '/', element: <AppLayout />, children: [
         { index: true, element: <DashboardPage /> },
@@ -31,6 +32,7 @@ export const router = createBrowserRouter([
           { path: 'workers', element: <WorkersPage /> }, { path: 'stations', element: <StationsPage /> },
         ] },
         { element: <ProtectedRoute allowedRoles={['admin', 'owner']} />, children: [{ path: 'settings', element: <SettingsPage /> }] },
+        { element: <ProtectedRoute allowedRoles={['worker', 'accountant', 'admin', 'owner']} />, children: [{ path: 'payroll', element: <PayrollPage /> }] },
         { element: <ProtectedRoute allowedRoles={['owner']} />, children: [{ path: 'team', element: <TeamAccessPage /> }, { path: 'audit', element: <AuditPage /> }] },
         { path: 'unauthorized', element: <Unauthorized /> },
         { path: '*', element: <NotFoundPage /> },

@@ -1,7 +1,7 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2.108.2'
 
-const roles = ['worker', 'manager', 'admin', 'owner'] as const
+const roles = ['worker', 'manager', 'admin', 'owner', 'accountant'] as const
 type AppRole = typeof roles[number]
 const allowedInvitationRedirects = new Set([
   'https://gangarig.github.io/shift-planner/reset-password?invite=1',

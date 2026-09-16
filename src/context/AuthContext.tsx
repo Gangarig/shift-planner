@@ -2,17 +2,17 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 
-export type AppRole = 'worker' | 'manager' | 'admin' | 'owner'
-export interface AuthUser { id: string; email: string; name: string; role: AppRole }
+export type AppRole = 'worker' | 'manager' | 'admin' | 'owner' | 'accountant'
+export interface AuthUser { id: string; email: string; name: string; role: AppRole; workerId: string | null }
 interface AuthContextValue { user: AuthUser | null; loading: boolean; signIn: (email: string, password: string) => Promise<void>; signOut: () => Promise<void> }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
-const roles: AppRole[] = ['worker', 'manager', 'admin', 'owner']
+const roles: AppRole[] = ['worker', 'manager', 'admin', 'owner', 'accountant']
 
 async function mapUser(user: User): Promise<AuthUser> {
   const { data: profile, error } = await supabase
     .from('profiles')
-    .select('full_name, role')
+    .select('full_name, role, worker_id')
     .eq('id', user.id)
     .single()
 
@@ -20,7 +20,7 @@ async function mapUser(user: User): Promise<AuthUser> {
 
   const role = roles.includes(profile.role) ? profile.role : 'worker'
   const name = profile.full_name || user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User'
-  return { id: user.id, email: user.email ?? '', name, role }
+  return { id: user.id, email: user.email ?? '', name, role, workerId: profile.worker_id ?? null }
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
