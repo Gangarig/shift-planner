@@ -319,6 +319,13 @@ body {
   .dashboard-roster .roster-list { flex: 1; max-height: none; }
 }
 @media (max-width: 48em) {
+  .app-header-inner { padding-inline: 8px !important; gap: 6px; }
+  .app-header-brand { gap: 6px; min-width: 0; }
+  .brand-logo--header { width: 104px; height: 36px; }
+  .header-actions { gap: 4px; flex-shrink: 0; }
+  .header-actions .mantine-Switch-label { display: none; }
+  .header-actions .mantine-Switch-body { gap: 0; }
+  .logout-button { padding-inline: 6px; }
   .mantine-AppShell-main {
     padding-bottom: calc(12rem + env(safe-area-inset-bottom));
   }

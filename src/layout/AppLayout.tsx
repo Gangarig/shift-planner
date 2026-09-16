@@ -15,8 +15,8 @@ function AppLayout() {
       padding={{ base: 'xs', sm: 'sm' }}
     >
       <AppShell.Header>
-        <Group h="100%" px={{ base: 'md', sm: 'xl' }} justify="space-between" wrap="nowrap">
-          <Group wrap="nowrap">
+        <Group className="app-header-inner" h="100%" px={{ base: 'md', sm: 'xl' }} justify="space-between" wrap="nowrap">
+          <Group className="app-header-brand" wrap="nowrap">
             <Burger opened={opened} onClick={toggle} hiddenFrom="md" size="sm" />
             <BrandLogo />
           </Group>
