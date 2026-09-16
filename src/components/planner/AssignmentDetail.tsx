@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Avatar, Badge, Button, Group, Paper, Stack, Text, Textarea, Title } from '@mantine/core'
+import { Badge, Button, Group, Paper, Stack, Text, Textarea, Title } from '@mantine/core'
 import type { Assignment } from '../../types/Assignment'
 import type { Worker } from '../../types/Worker'
 import type { Station } from '../../types/Station'
@@ -41,7 +41,6 @@ function AssignmentDetail({
         </Group>
 
         <Group>
-          <Avatar color="blue">{worker.name.slice(0, 2).toUpperCase()}</Avatar>
           <div style={{ flex: 1 }}>
             <Text fw={600}>{worker.name}</Text>
             <Text size="sm" c="dimmed">{worker.role}</Text>

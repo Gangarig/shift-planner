@@ -1,4 +1,4 @@
-import { Avatar, Badge, Box, Group, Paper, Stack, Text } from '@mantine/core'
+import { Badge, Box, Group, Paper, Stack, Text } from '@mantine/core'
 import type { Assignment } from '../../types/Assignment'
 import type { Worker, WorkerStatus } from '../../types/Worker'
 
@@ -20,7 +20,6 @@ function PlannerWorkerList({ workers, assignments }: PlannerWorkerListProps) {
       onDragStart={(event) => { event.dataTransfer.setData('application/x-shift-worker', worker.id); event.dataTransfer.setData('text/plain', worker.id); event.dataTransfer.effectAllowed = 'copy' }}
       style={{ cursor: draggable ? 'grab' : 'default' }}>
       <Group wrap="nowrap" gap={6}>
-        <Avatar size={24} color={statusColors[worker.status]}>{worker.name.slice(0, 2).toUpperCase()}</Avatar>
         <div style={{ flex: 1, minWidth: 0 }}><Text size="sm" fw={600} truncate>{worker.name}</Text></div>
         <Text size="xs" c="dimmed">{shiftCount}</Text>
         <Box w={7} h={7} title={worker.status} bg={`var(--mantine-color-${statusColors[worker.status]}-6)`} style={{ borderRadius: '50%', flexShrink: 0 }} />
