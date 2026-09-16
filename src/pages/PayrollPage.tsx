@@ -16,7 +16,7 @@ function defaultSchedule(type: LeaveRequestType): 'late'|'sick'|'holiday'|null {
 function checkFile(file: File | null) { if (!file) throw new Error('Choose a PDF, JPG, or PNG file'); if (!accepted.includes(file.type)) throw new Error('Only PDF, JPG, and PNG files are allowed'); if (file.size > 10 * 1024 * 1024) throw new Error('The file must be 10 MB or smaller'); return file }
 
 export default function PayrollPage() {
-  const { user } = useAuth(); const { workers } = useApp(); const accountant = user?.role === 'accountant'; const oversight = ['admin','owner'].includes(user?.role ?? ''); const canViewAll = accountant || oversight
+  const { user } = useAuth(); const { workers, refreshPlanningData } = useApp(); const accountant = user?.role === 'accountant'; const oversight = ['admin','owner'].includes(user?.role ?? ''); const canViewAll = accountant || oversight
   const [month,setMonth]=useState(currentMonth), [overtime,setOvertime]=useState<OvertimeEntry[]>([]), [requests,setRequests]=useState<LeaveRequest[]>([]), [payslips,setPayslips]=useState<PayslipDocument[]>([]), [documents,setDocuments]=useState<LeaveRequestDocument[]>([])
   const [loading,setLoading]=useState(true), [busy,setBusy]=useState(false), [error,setError]=useState('')
   const [workerId,setWorkerId]=useState(user?.workerId ?? ''), [date,setDate]=useState(today), [hours,setHours]=useState<number|string>(1), [overtimeNote,setOvertimeNote]=useState('')
@@ -27,7 +27,7 @@ export default function PayrollPage() {
 
   async function refresh() { try { setLoading(true); setError(''); const [o,r,p,d]=await Promise.all([canViewAll?loadOvertimeEntries(`${month}-01`,monthEnd(month)):Promise.resolve([]),loadLeaveRequests(),loadPayslips(),loadLeaveDocuments()]); setOvertime(o); setRequests(r); setPayslips(p); setDocuments(d) } catch(reason){setError(errorMessage(reason))} finally{setLoading(false)} }
   useEffect(()=>{let active=true;Promise.all([canViewAll?loadOvertimeEntries(`${month}-01`,monthEnd(month)):Promise.resolve([]),loadLeaveRequests(),loadPayslips(),loadLeaveDocuments()]).then(([o,r,p,d])=>{if(active){setOvertime(o);setRequests(r);setPayslips(p);setDocuments(d);setError('');setLoading(false)}}).catch(reason=>{if(active){setError(errorMessage(reason));setLoading(false)}});return()=>{active=false}},[month,canViewAll])
-  async function act(action:()=>Promise<void>,title:string){setBusy(true);try{await action();await refresh();notifications.show({color:'green',title,message:'Saved securely'})}catch(reason){notifications.show({color:'red',title:'Could not save',message:errorMessage(reason)})}finally{setBusy(false)}}
+  async function act(action:()=>Promise<void>,title:string){setBusy(true);try{await action();await Promise.all([refresh(),refreshPlanningData()]);notifications.show({color:'green',title,message:'Saved securely'})}catch(reason){notifications.show({color:'red',title:'Could not save',message:errorMessage(reason)})}finally{setBusy(false)}}
   async function submitRequest(){const target=user?.workerId;if(!target) return setError('This login must be linked to a worker before requesting leave.');await act(()=>createLeaveRequest({workerId:target,type:requestType,startDate,endDate,startTime:startTime||null,endTime:endTime||null,note:requestNote.trim()||null}),'Request submitted');setRequestNote('')}
   const pending=requests.filter(r=>r.status==='pending').length
 

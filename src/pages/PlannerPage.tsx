@@ -98,7 +98,7 @@ export default function PlannerPage() {
     if (closure) { setMessage(`${closure.label}: the workplace is closed on this date.`); return }
     const absence = blockingAbsence(id, date)
     if (absence) { setMessage(`${absence.status === 'holiday' ? 'Vacation' : 'Sick leave'} is recorded for this worker on this date.`); return }
-    const problem = assignmentProblem(app.workers.find(w => w.id === id), app.stations.find(s => s.id === stationId), date, app.assignments, assignment?.id)
+    const problem = assignmentProblem(app.workers.find(w => w.id === id), app.stations.find(s => s.id === stationId), date, app.assignments, app.absences, assignment?.id)
     if (problem) { setMessage(problem); return }
     const station = app.stations.find(s => s.id === stationId)
     await save(() => assignment ? app.updateAssignment({ ...assignment, stationId, date, source: 'manual' }) : app.createAssignment({ workerId: id, stationId, date, note: null, source: 'manual', startTime: station?.defaultStartTime, endTime: station?.defaultEndTime }))
@@ -120,7 +120,7 @@ export default function PlannerPage() {
     const noteOnly = existing && existing.workerId === workerId
     const absence = blockingAbsence(workerId, date)
     if (!noteOnly && absence) { setMessage(`${absence.status === 'holiday' ? 'Vacation' : 'Sick leave'} is recorded for this worker on this date.`); return }
-    const problem = noteOnly ? null : assignmentProblem(app.workers.find(w => w.id === workerId), app.stations.find(s => s.id === editor.stationId), date, app.assignments, editor.id)
+    const problem = noteOnly ? null : assignmentProblem(app.workers.find(w => w.id === workerId), app.stations.find(s => s.id === editor.stationId), date, app.assignments, app.absences, editor.id)
     if (problem) { setMessage(problem); return }
     if (startTime && endTime && startTime >= endTime) { setMessage('End time must be after start time.'); return }
     const value = { workerId, stationId: editor.stationId, date, note: note.trim() || null, source: existing && existing.workerId === workerId ? existing.source : 'manual' as const, startTime: startTime || null, endTime: endTime || null }
@@ -189,7 +189,7 @@ export default function PlannerPage() {
       {editor && <Stack>
         <Text fw={600}>{app.stations.find(s => s.id === editor.stationId)?.name} · {dateLabel(fromDateKey(editor.date))}</Text>
         {message && <Alert color="red">{message}</Alert>}
-        <Select label="Worker" searchable value={workerId} onChange={value => setWorkerId(value ?? '')} disabled={!canEdit || busy} data={app.workers.map(w => ({ value: w.id, label: w.name, disabled: w.id !== workerId && (!!assignmentProblem(w, app.stations.find(s => s.id === editor.stationId), fromDateKey(editor.date), app.assignments, editor.id) || !!blockingAbsence(w.id, fromDateKey(editor.date))) }))} />
+        <Select label="Worker" searchable value={workerId} onChange={value => setWorkerId(value ?? '')} disabled={!canEdit || busy} data={app.workers.map(w => ({ value: w.id, label: w.name, disabled: w.id !== workerId && !!assignmentProblem(w, app.stations.find(s => s.id === editor.stationId), fromDateKey(editor.date), app.assignments, app.absences, editor.id) }))} />
         <Group grow><TextInput type="time" label="Start time" value={startTime} onChange={e => setStartTime(e.currentTarget.value)} readOnly={!canEdit} /><TextInput type="time" label="End time" value={endTime} onChange={e => setEndTime(e.currentTarget.value)} readOnly={!canEdit} /></Group>
         <Textarea label="Handover note" value={note} onChange={e => setNote(e.currentTarget.value)} readOnly={!canEdit} autosize minRows={3} maxLength={2000} />
         {canEdit && <Group justify="space-between"><Button loading={busy} disabled={!workerId} onClick={() => void submit()}>Save assignment</Button>{editor.id && <Button variant="light" disabled={busy} onClick={() => { setSelection({ kind: 'assignment', id: editor.id! }); setEditor(null) }}>Move to another cell</Button>}</Group>}

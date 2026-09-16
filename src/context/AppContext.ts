@@ -31,6 +31,7 @@ export interface AppContextValue {
   publishWeeklyPlan: () => Promise<boolean>
   createCompanyClosure: (value: NewCompanyClosure) => Promise<boolean>
   removeCompanyClosure: (id: string) => Promise<boolean>
+  refreshPlanningData: () => Promise<void>
   monday: Date
   weekDays: { label: string; date: Date }[]
   selectedWeekDate: Date

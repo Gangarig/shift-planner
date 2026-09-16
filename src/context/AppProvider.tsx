@@ -253,7 +253,11 @@ function AppProvider() {
     catch (error) { setWorkersError('Could not delete worker'); notifications.show({ color: 'red', title: 'Worker failed', message: errorMessage(error) }) ; return false }
   }
 
-  return <AppContext.Provider value={{ workers, stations, assignments, dailyNotes, absences, weeklyPlan, companyClosures, createWorker: handleCreateWorker, updateWorker: handleUpdateWorker, removeWorker: handleRemoveWorker, createStation: handleCreateStation, updateStation: handleUpdateStation, removeStation: handleRemoveStation, createAssignment: handleCreateAssignment, updateAssignment: handleUpdateAssignment, removeAssignment: handleRemoveAssignment, saveDailyNote: handleSaveDailyNote, autoAssignPreferredWorkers: handleAutoAssignPreferredWorkers, createAbsence: handleCreateAbsence, removeAbsence: handleRemoveAbsence, publishWeeklyPlan: handlePublishWeeklyPlan, createCompanyClosure: handleCreateCompanyClosure, removeCompanyClosure: handleRemoveCompanyClosure, monday, weekDays, selectedWeekDate, setSelectedWeekDate, loadingWorkers, workersError, loadingStations, stationsError, loadingAssignments, assignmentsError }}><Outlet /></AppContext.Provider>
+  async function refreshPlanningData() {
+    await Promise.all([refreshAbsences(), refreshAssignments()])
+  }
+
+  return <AppContext.Provider value={{ workers, stations, assignments, dailyNotes, absences, weeklyPlan, companyClosures, createWorker: handleCreateWorker, updateWorker: handleUpdateWorker, removeWorker: handleRemoveWorker, createStation: handleCreateStation, updateStation: handleUpdateStation, removeStation: handleRemoveStation, createAssignment: handleCreateAssignment, updateAssignment: handleUpdateAssignment, removeAssignment: handleRemoveAssignment, saveDailyNote: handleSaveDailyNote, autoAssignPreferredWorkers: handleAutoAssignPreferredWorkers, createAbsence: handleCreateAbsence, removeAbsence: handleRemoveAbsence, publishWeeklyPlan: handlePublishWeeklyPlan, createCompanyClosure: handleCreateCompanyClosure, removeCompanyClosure: handleRemoveCompanyClosure, refreshPlanningData, monday, weekDays, selectedWeekDate, setSelectedWeekDate, loadingWorkers, workersError, loadingStations, stationsError, loadingAssignments, assignmentsError }}><Outlet /></AppContext.Provider>
 }
 
 export default AppProvider

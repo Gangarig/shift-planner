@@ -1,10 +1,11 @@
 import type { Assignment } from '../types/Assignment'
 import type { Worker } from '../types/Worker'
 import type { Station } from '../types/Station'
+import type { WorkerAbsence } from '../types/WorkerAbsence'
 import { toDateKey } from './dateUtils'
 import { austrianPublicHoliday } from './austrianHolidays'
 
-export function assignmentProblem(worker: Worker | undefined, station: Station | undefined, date: Date, assignments: Assignment[], ignoreId?: string) {
+export function assignmentProblem(worker: Worker | undefined, station: Station | undefined, date: Date, assignments: Assignment[], absences: WorkerAbsence[] = [], ignoreId?: string) {
   if (!worker || !station) return 'Choose a worker and station.'
   if (!Number.isFinite(date.getTime())) return 'Choose a valid date.'
   const holiday = austrianPublicHoliday(date)
@@ -12,6 +13,8 @@ export function assignmentProblem(worker: Worker | undefined, station: Station |
   if (!['available', 'late'].includes(worker.status)) return 'This worker is currently unavailable.'
   if (!station.active) return 'This station is inactive.'
   const day = toDateKey(date)
+  const absence = absences.find(item => item.workerId === worker.id && item.status !== 'late' && item.startDate <= day && item.endDate >= day)
+  if (absence) return `${absence.status === 'holiday' ? 'Vacation' : 'Sick leave'} is recorded for this worker on this date.`
   if (assignments.some(a => a.id !== ignoreId && a.workerId === worker.id && toDateKey(a.date) === day)) return 'This worker already has an assignment on this day.'
   return null
 }

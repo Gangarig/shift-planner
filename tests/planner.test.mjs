@@ -26,7 +26,13 @@ test('Sunday resolves to preceding Monday', () => assert.equal(toDateKey(getMond
 test('free cell accepts worker', () => assert.equal(assignmentProblem(worker,station,date,[]),null))
 test('worker double-booking rejected', () => assert.match(assignmentProblem(worker,{id:'other',active:true},date,[assignment]),/worker already/))
 test('a station accepts multiple workers on the same day', () => assert.equal(assignmentProblem({id:'other',status:'available'},station,date,[assignment]),null))
-test('moving an assignment ignores its own booking', () => assert.equal(assignmentProblem(worker,station,date,[assignment],'a'),null))
+test('moving an assignment ignores its own booking', () => assert.equal(assignmentProblem(worker,station,date,[assignment],[],'a'),null))
+test('approved vacation blocks assignment on every covered date', () => {
+  const absences = [{ id:'x', workerId:'w', startDate:'2026-09-16', endDate:'2026-09-20', status:'holiday' }]
+  assert.match(assignmentProblem(worker,station,fromDateKey('2026-09-16'),[],absences),/Vacation/)
+  assert.match(assignmentProblem(worker,station,fromDateKey('2026-09-18'),[],absences),/Vacation/)
+  assert.equal(assignmentProblem(worker,station,fromDateKey('2026-09-15'),[],absences),null)
+})
 test('unavailable workers and inactive stations rejected', () => {
  assert.match(assignmentProblem({...worker,status:'sick'},station,date,[]),/unavailable/)
  assert.match(assignmentProblem(worker,{...station,active:false},date,[]),/inactive/)
