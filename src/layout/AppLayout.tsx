@@ -2,7 +2,8 @@
 import Sidebar from '../components/layout/Sidebar'
 import Header from '../components/layout/Header'
 import TopNavigation from '../components/layout/TopNavigation'
-import { AppShell, Burger, Drawer, Group, Text } from '@mantine/core'
+import BrandLogo from '../components/layout/BrandLogo'
+import { AppShell, Burger, Drawer, Group } from '@mantine/core'
 import { Outlet } from 'react-router-dom'
 import { useDisclosure } from '@mantine/hooks'
 
@@ -17,7 +18,7 @@ function AppLayout() {
         <Group h="100%" px={{ base: 'md', sm: 'xl' }} justify="space-between" wrap="nowrap">
           <Group wrap="nowrap">
             <Burger opened={opened} onClick={toggle} hiddenFrom="md" size="sm" />
-            <Text fw={700} size="lg">Shift Planner</Text>
+            <BrandLogo />
           </Group>
           <TopNavigation />
           <Header/>

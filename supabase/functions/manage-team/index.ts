@@ -157,6 +157,16 @@ Deno.serve(async (req) => {
       return response({ success: true })
     }
 
+    if (action === 'delete-account') {
+      const { data, error: userError } = await admin.auth.admin.getUserById(userId)
+      if (userError) throw userError
+      const deletedEmail = data.user.email ?? ''
+      const { error } = await admin.auth.admin.deleteUser(userId)
+      if (error) throw error
+      await admin.from('security_audit_log').insert({ actor_id: callerId, action: 'delete_account', entity_type: 'profile', metadata: { deleted_user_id: userId, deleted_email: deletedEmail } })
+      return response({ success: true })
+    }
+
     return response({ error: 'Unknown action' }, 400)
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unexpected server error'

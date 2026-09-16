@@ -17,6 +17,7 @@ type TeamAction =
   | { action: 'update'; userId: string; role: AppRole; workerId: string | null }
   | { action: 'set-disabled'; userId: string; disabled: boolean }
   | { action: 'cancel-invitation'; userId: string }
+  | { action: 'delete-account'; userId: string }
 
 async function invoke<T>(body: TeamAction): Promise<T> {
   const { data, error } = await supabase.functions.invoke('manage-team', { body })
@@ -44,4 +45,8 @@ export async function setTeamMemberDisabled(userId: string, disabled: boolean) {
 
 export async function cancelInvitation(userId: string) {
   return invoke<{ success: true }>({ action: 'cancel-invitation', userId })
+}
+
+export async function deleteTeamMemberAccount(userId: string) {
+  return invoke<{ success: true }>({ action: 'delete-account', userId })
 }

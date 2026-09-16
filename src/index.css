@@ -305,6 +305,11 @@ body {
 .dashboard-summary .mantine-SimpleGrid-root { gap: 8px; }
 .metric-card { min-height: 82px; }
 .mantine-AppShell-header { background: var(--app-surface-raised); }
+.brand-logo { display: block; object-fit: contain; }
+.brand-logo--header { width: 142px; height: 42px; }
+.brand-logo--login { width: min(100%, 300px); height: 130px; margin: -28px auto -8px; }
+[data-mantine-color-scheme='dark'] .brand-logo { filter: invert(1); }
+.visually-hidden { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 .mantine-Title-root { letter-spacing: -.025em; }
 .print-week-title { display: none; }
 @media (max-width: 58em) { .schedule-layout { grid-template-columns: minmax(0, 1fr); } .schedule-roster { position: static; } .roster-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); max-height: 180px; } }
