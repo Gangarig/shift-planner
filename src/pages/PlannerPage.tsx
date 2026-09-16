@@ -134,8 +134,8 @@ export default function PlannerPage() {
   const coverage = app.stations.filter(s => s.active).length * workingDays.length
   return <Stack className="page-container planner-page" gap="sm">
     <Group justify="space-between" className="planner-heading">
-      <div><Text size="xs" tt="uppercase" fw={700} c="dimmed">Your workspace / Schedule</Text><Title order={1}>Weekly planner</Title><Text c="dimmed">{canEdit ? 'Choose a worker, then click an empty cell. Dragging works too.' : 'Your team schedule. Editing is available to managers.'}</Text></div>
-      <Group className="planner-actions">{canEdit && <Button variant="filled" loading={busy} onClick={() => void save(async () => (await app.autoAssignPreferredWorkers()) !== null)}>Fill main stations</Button>}{canEdit && <Button color="green" loading={busy} disabled={!weekAssignments.length} onClick={() => setConfirmPublish(true)}>{isPublished ? 'Publish update' : 'Publish week'}</Button>}<Button variant="light" onClick={() => void shareWeeklyPlan()}>Share weekly plan</Button><Button variant="default" onClick={() => window.print()}>Print A4</Button><Badge variant="light" color={isPublished ? 'green' : 'gray'}>{isPublished ? `Published · revision ${app.weeklyPlan?.revision}` : 'Draft'}</Badge><Badge variant="light" color="blue">{weekAssignments.length} scheduled · {Math.max(0, coverage - new Set(weekAssignments.filter(a => app.stations.find(s => s.id === a.stationId)?.active).map(a => `${a.stationId}-${toDateKey(a.date)}`)).size)} open</Badge></Group>
+      <div><Text size="xs" tt="uppercase" fw={700} c="dimmed">Your workspace / Schedule</Text><Title order={1}>Weekly planner</Title><Text c="dimmed">{canEdit ? 'Choose a worker, then click an empty cell. Dragging works too.' : 'Published team schedule · read-only.'}</Text></div>
+      <Group className="planner-actions">{canEdit && <Button variant="filled" loading={busy} onClick={() => void save(async () => (await app.autoAssignPreferredWorkers()) !== null)}>Fill main stations</Button>}{canEdit && <Button color="green" loading={busy} disabled={!weekAssignments.length} onClick={() => setConfirmPublish(true)}>{isPublished ? 'Publish update' : 'Publish week'}</Button>}<Button variant="light" onClick={() => void shareWeeklyPlan()}>Share weekly plan</Button><Button variant="default" onClick={() => window.print()}>Print A4</Button><Badge variant="light" color={isPublished ? 'green' : 'gray'}>{isPublished ? `Published · revision ${app.weeklyPlan?.revision}` : 'Draft'}</Badge>{canEdit&&<Badge variant="light" color="blue">{weekAssignments.length} scheduled · {Math.max(0, coverage - new Set(weekAssignments.filter(a => app.stations.find(s => s.id === a.stationId)?.active).map(a => `${a.stationId}-${toDateKey(a.date)}`)).size)} open</Badge>}</Group>
     </Group>
     <Text className="print-week-title" fw={700}>Week {dateLabel(days[0].date)} – {dateLabel(days[4].date)}, {days[0].date.getFullYear()}</Text>
     <Paper withBorder p="md" className="planner-week-controls">
@@ -147,7 +147,7 @@ export default function PlannerPage() {
     {(message || app.assignmentsError || app.workersError || app.stationsError) && <Alert color="red" title="Please check">{message || app.assignmentsError || app.workersError || app.stationsError}</Alert>}
     {!canEdit && !isPublished && <Alert color="blue" title="This week is not published yet">A manager or administrator is still preparing the weekly plan.</Alert>}
     {selection && <Alert color="blue" title={selectedName ? 'Selected: ' + selectedName : 'Assignment selected'}><Group justify="space-between"><Text size="sm">Click an empty cell to {selection.kind === 'assignment' ? 'move this assignment' : 'assign this worker'}.</Text><Button variant="subtle" size="xs" onClick={() => setSelection(null)}>Cancel selection</Button></Group></Alert>}
-    <div className="schedule-layout" aria-busy={busy || loading}>
+    <div className={`schedule-layout${canEdit?'':' schedule-layout--single'}`} aria-busy={busy || loading}>
       <Stack gap="sm">
         <TextInput className="planner-station-search" placeholder="Find a station…" aria-label="Find a station" value={search} onChange={e => setSearch(e.currentTarget.value)} />
         <div className={'schedule-scroll ' + density}>
@@ -173,7 +173,7 @@ export default function PlannerPage() {
         {!stations.length && <Text c="dimmed" ta="center" p="xl">{loading ? 'Loading stations…' : 'No stations match. Add a station from the Stations page.'}</Text>}
         <Text className="planner-save-status" size="xs" c="dimmed" aria-live="polite">{busy ? 'Saving your changes…' : 'Stations can have several workers; each worker can only be assigned once per day.'}</Text>
       </Stack>
-      <Paper withBorder p="xs" className="schedule-roster">
+      {canEdit&&<Paper withBorder p="xs" className="schedule-roster">
         <Stack gap="sm"><Group justify="space-between"><Text fw={700}>Team</Text><Badge color="gray" variant="light">{app.workers.length}</Badge></Group><TextInput placeholder="Find a worker…" aria-label="Find a worker" value={workerSearch} onChange={e => setWorkerSearch(e.currentTarget.value)} />
           <div className="roster-list">{workers.map(w => <button type="button" className={'roster-worker ' + (selection?.kind === 'worker' && selection.id === w.id ? 'selected' : '')} key={w.id} disabled={!canEdit || !['available', 'late'].includes(w.status) || busy} draggable={canEdit && ['available', 'late'].includes(w.status) && !busy}
             onClick={() => setSelection({ kind: 'worker', id: w.id })}
@@ -183,7 +183,7 @@ export default function PlannerPage() {
           </button>)}</div>
           {!workers.length && <Text size="sm" c="dimmed">No matching workers.</Text>}
         </Stack>
-      </Paper>
+      </Paper>}
     </div>
     <Modal opened={!!editor} onClose={() => { if (!busy) setEditor(null) }} title={editor?.id ? 'Assignment details' : 'Assign a worker'} centered>
       {editor && <Stack>

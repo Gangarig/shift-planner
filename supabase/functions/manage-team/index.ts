@@ -91,10 +91,21 @@ Deno.serve(async (req) => {
       const { data, error } = await admin.auth.admin.inviteUserByEmail(email, { data: { full_name: fullName }, redirectTo })
       if (error) throw error
       const userId = data.user.id
-      const { error: profileError } = await admin.from('profiles').upsert({ id: userId, full_name: fullName, role, worker_id: workerId })
+      let resolvedWorkerId = role === 'owner' ? null : workerId
+      if (role !== 'owner' && !resolvedWorkerId) {
+        const { data: existingWorker, error: findError } = await admin.from('workers').select('id').ilike('email', email).limit(1).maybeSingle()
+        if (findError) throw findError
+        if (existingWorker) resolvedWorkerId = existingWorker.id
+        else {
+          const { data: createdWorker, error: createError } = await admin.from('workers').insert({ name: fullName, email, role, status: 'available' }).select('id').single()
+          if (createError) { await admin.auth.admin.deleteUser(userId); throw createError }
+          resolvedWorkerId = createdWorker.id
+        }
+      }
+      const { error: profileError } = await admin.from('profiles').upsert({ id: userId, full_name: fullName, role, worker_id: resolvedWorkerId })
       if (profileError) { await admin.auth.admin.deleteUser(userId); throw profileError }
       await admin.from('security_audit_log').insert({ actor_id: callerId, action: 'invite', entity_type: 'profile', entity_id: userId })
-      return response({ member: { id: userId, email, fullName, role, status: 'invited', workerId, createdAt: data.user.created_at } }, 201)
+      return response({ member: { id: userId, email, fullName, role, status: 'invited', workerId: resolvedWorkerId, createdAt: data.user.created_at } }, 201)
     }
 
     const userId = typeof body.userId === 'string' ? body.userId : ''
@@ -103,8 +114,23 @@ Deno.serve(async (req) => {
 
     if (action === 'update') {
       const role = body.role
-      const workerId = typeof body.workerId === 'string' && body.workerId ? body.workerId : null
+      let workerId = typeof body.workerId === 'string' && body.workerId ? body.workerId : null
       if (!isRole(role)) return response({ error: 'Choose a valid role' }, 400)
+      if (role === 'owner') workerId = null
+      if (role !== 'owner' && !workerId) {
+        const { data: authUser, error: authUserError } = await admin.auth.admin.getUserById(userId)
+        if (authUserError) throw authUserError
+        const email = authUser.user.email?.trim().toLowerCase() ?? ''
+        const fullName = authUser.user.user_metadata?.full_name || email.split('@')[0] || 'Worker'
+        const { data: existingWorker, error: findError } = await admin.from('workers').select('id').ilike('email', email).limit(1).maybeSingle()
+        if (findError) throw findError
+        if (existingWorker) workerId = existingWorker.id
+        else {
+          const { data: createdWorker, error: createError } = await admin.from('workers').insert({ name: fullName, email, role, status: 'available' }).select('id').single()
+          if (createError) throw createError
+          workerId = createdWorker.id
+        }
+      }
       const { data: profile, error: profileError } = await admin.from('profiles').update({ role, worker_id: workerId }).eq('id', userId).select('id').single()
       if (profileError || !profile) throw profileError ?? new Error('Profile was not found')
       await admin.from('security_audit_log').insert({ actor_id: callerId, action: 'access_update', entity_type: 'profile', entity_id: userId })

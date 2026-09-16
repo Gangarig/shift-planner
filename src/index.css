@@ -236,6 +236,7 @@ body {
 
 /* Desktop uses an A4-like fitted table; only narrow screens scroll horizontally. */
 .schedule-layout { display: grid; grid-template-columns: minmax(0, 1fr) 230px; gap: 10px; align-items: start; }
+.schedule-layout--single { grid-template-columns: minmax(0, 1fr); }
 .schedule-scroll { max-height: none; overflow: visible; border: 1px solid var(--app-border); border-radius: 10px; background: var(--app-surface-raised); }
 .schedule-table { width: 100%; min-width: 0; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
 .schedule-table th, .schedule-table td { border-bottom: 1px solid var(--app-border); border-right: 1px solid var(--app-border); }
