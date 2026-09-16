@@ -14,6 +14,14 @@ do $$ begin
   begin insert into public.overtime_entries(worker_id,work_date,hours) select worker_id,'2099-06-01',1 from payroll_test_ids; raise exception 'TEST FAILED: worker created overtime'; exception when insufficient_privilege then null; end;
 end $$;
 reset role;
+update public.profiles set role='admin' where id=(select user_id from payroll_test_ids);
+set local role authenticated;
+do $$ begin
+  if (select count(*) from public.leave_requests where id=(select request_id from payroll_test_ids)) <> 1 then raise exception 'TEST FAILED: admin oversight cannot read request'; end if;
+  begin update public.leave_requests set status='approved',schedule_status='holiday' where id=(select request_id from payroll_test_ids); raise exception 'TEST FAILED: admin reviewed request'; exception when insufficient_privilege then null; end;
+  begin insert into public.overtime_entries(worker_id,work_date,hours) select worker_id,'2099-06-01',1 from payroll_test_ids; raise exception 'TEST FAILED: admin created overtime'; exception when insufficient_privilege then null; end;
+end $$;
+reset role;
 update public.profiles set role='accountant' where id=(select user_id from payroll_test_ids);
 set local role authenticated;
 insert into public.overtime_entries(worker_id,work_date,hours,note) select worker_id,'2099-06-01',1.5,'Verified' from payroll_test_ids;
@@ -22,5 +30,5 @@ do $$ begin
   if not exists(select 1 from public.leave_requests where id=(select request_id from payroll_test_ids) and absence_id is not null) then raise exception 'TEST FAILED: approval did not link absence'; end if;
 end $$;
 reset role;
-select 'PASS: worker self-service isolation, accountant overtime, approval-to-absence sync' as result;
+select 'PASS: worker requests, admin read-only oversight, accountant-only overtime and approval' as result;
 rollback;
