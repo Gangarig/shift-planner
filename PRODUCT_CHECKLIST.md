@@ -9,7 +9,10 @@ This release keeps the existing dashboard, planner, workers, stations, and setti
 - [x] Staff exceptions: dated sick leave, vacation, and late records; sick/vacation clear only the affected dates.
 - [x] Shift times: station default times with per-assignment overrides and database-enforced valid ordering.
 - [x] Live collaboration: authenticated clients refresh workers, stations, assignments, notes, and absences after database changes.
+- [x] Publication: managers, admins, and owners publish or republish a week; workers see the complete week only after publication.
+- [x] Notifications: team publication alerts and linked-worker assignment-change alerts with unread state and realtime delivery.
 - [x] Reporting: owner audit-history screen plus selected-week and worker CSV exports.
+- [x] Retention: complete audit CSV export and automatic deletion of audit records older than one year.
 - [x] Distribution: phone share sheet/WhatsApp-friendly weekly plan and A4 landscape full-grid printing.
 - [x] Austrian public holidays: automatic fixed/movable dates, closed blank columns, and database-enforced assignment rejection.
 - [x] Data: verify returned rows on writes; show errors; preserve forms after failed saves.
@@ -32,10 +35,10 @@ This release keeps the existing dashboard, planner, workers, stations, and setti
 
 Current product serves one company, Monday through Friday. A station can have multiple workers, but each worker can only occupy one station per day. Worker records are separate from login accounts. No extra login accounts or shared passwords are required for sample workers.
 
-Future product work: company membership and tenant isolation, leave approval workflows, draft/published schedules, payroll/time-clock integration, and production email delivery. These are not claimed as complete by this MVP.
+Future product work: company membership and tenant isolation, leave approval workflows, optional phone push/email delivery, and production email configuration. Payroll and time-clock integration are intentionally out of scope.
 ## Verified this release
 
-Automated scheduling/date checks pass. Live database checks cover RLS, grants, function access, date and time integrity, double-booking, dated absences, note editing, and atomic selected-week cleanup. Lint and production build pass.
+Automated scheduling/date checks pass. Live database checks cover RLS, grants, function access, draft privacy, publication, notifications, permanent worker deletion, date and time integrity, double-booking, dated absences, note editing, and atomic selected-week cleanup. Lint and production build pass.
 
 Browser interaction and visual QA remain unverified: the browser tool cannot pass its administrator policy check. End-to-end signup/email recovery also require the configured email provider and redirect URLs.
 

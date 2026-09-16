@@ -15,6 +15,8 @@ import { createAbsence, loadAbsences, removeAbsence } from '../services/absenceS
 import { supabase } from '../lib/supabase'
 import { errorMessage } from '../lib/plannerRules'
 import { getMondayOfWeek, getWeekDays, toDateKey } from '../lib/dateUtils'
+import type { WeeklyPlan } from '../types/WeeklyPlan'
+import { loadWeeklyPlan, publishWeeklyPlan } from '../services/weeklyPlanService'
 
 function AppProvider() {
   const [workers, setWorkers] = useState<Worker[]>([])
@@ -22,6 +24,7 @@ function AppProvider() {
   const [assignments, setAssignments] = useState<Assignment[]>([])
   const [dailyNotes, setDailyNotes] = useState<DailyNote[]>([])
   const [absences, setAbsences] = useState<WorkerAbsence[]>([])
+  const [weeklyPlan, setWeeklyPlan] = useState<WeeklyPlan | null>(null)
   const [loadingWorkers, setLoadingWorkers] = useState(false)
   const [loadingStations, setLoadingStations] = useState(false)
   const [loadingAssignments, setLoadingAssignments] = useState(false)
@@ -40,7 +43,7 @@ function AppProvider() {
 
   // The date key is the deliberate refresh boundary; both loaders read this render's week.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { void Promise.all([refreshAssignments(), refreshDailyNotes(), refreshAbsences()]) }, [weekStart])
+  useEffect(() => { void Promise.all([refreshAssignments(), refreshDailyNotes(), refreshAbsences(), refreshWeeklyPlan()]) }, [weekStart])
 
   useEffect(() => {
     const channel = supabase.channel(`planner-live-${weekStart}`)
@@ -49,6 +52,7 @@ function AppProvider() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'worker_absences' }, () => { void Promise.all([refreshAbsences(), refreshAssignments()]) })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'workers' }, () => { void refreshWorkers() })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'stations' }, () => { void refreshStations() })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'weekly_plans' }, () => { void Promise.all([refreshWeeklyPlan(), refreshAssignments(), refreshDailyNotes()]) })
       .subscribe()
     return () => { void supabase.removeChannel(channel) }
     // Reconnect for the selected week so callbacks use its date boundaries.
@@ -96,6 +100,19 @@ function AppProvider() {
   async function refreshAbsences() {
     try { setAbsences(await loadAbsences(weekStart, weekEnd)) }
     catch (error) { notifications.show({ color: 'red', title: 'Absences failed', message: errorMessage(error) }) }
+  }
+
+  async function refreshWeeklyPlan() {
+    try { setWeeklyPlan(await loadWeeklyPlan(weekStart)) }
+    catch (error) { notifications.show({ color: 'red', title: 'Plan status failed', message: errorMessage(error) }) }
+  }
+
+  async function handlePublishWeeklyPlan() {
+    try {
+      setWeeklyPlan(await publishWeeklyPlan(weekStart))
+      notifications.show({ color: 'green', title: weeklyPlan?.status === 'published' ? 'Plan update published' : 'Plan published', message: 'The team can now see this week and has been notified.' })
+      return true
+    } catch (error) { notifications.show({ color: 'red', title: 'Publishing failed', message: errorMessage(error) }); return false }
   }
 
   async function handleCreateAbsence(value: NewWorkerAbsence) {
@@ -213,16 +230,11 @@ function AppProvider() {
   }
 
   async function handleRemoveWorker(worker: Worker) {
-    if (assignments.some((assignment) => assignment.workerId === worker.id)) {
-      setWorkersError('Worker has assignments')
-      notifications.show({ color: 'red', title: 'Worker cannot be deleted', message: 'Remove their assignments first' })
-      return false
-    }
-    try { await removeWorker(worker); await refreshWorkers(); notifications.show({ color: 'green', title: 'Worker deleted', message: 'The worker was removed' }) ; return true }
+    try { await removeWorker(worker); await Promise.all([refreshWorkers(), refreshAssignments()]); notifications.show({ color: 'green', title: 'Worker deleted', message: 'The worker and their assignments were permanently removed' }) ; return true }
     catch (error) { setWorkersError('Could not delete worker'); notifications.show({ color: 'red', title: 'Worker failed', message: errorMessage(error) }) ; return false }
   }
 
-  return <AppContext.Provider value={{ workers, stations, assignments, dailyNotes, absences, createWorker: handleCreateWorker, updateWorker: handleUpdateWorker, removeWorker: handleRemoveWorker, createStation: handleCreateStation, updateStation: handleUpdateStation, removeStation: handleRemoveStation, createAssignment: handleCreateAssignment, updateAssignment: handleUpdateAssignment, removeAssignment: handleRemoveAssignment, saveDailyNote: handleSaveDailyNote, autoAssignPreferredWorkers: handleAutoAssignPreferredWorkers, createAbsence: handleCreateAbsence, removeAbsence: handleRemoveAbsence, monday, weekDays, selectedWeekDate, setSelectedWeekDate, loadingWorkers, workersError, loadingStations, stationsError, loadingAssignments, assignmentsError }}><Outlet /></AppContext.Provider>
+  return <AppContext.Provider value={{ workers, stations, assignments, dailyNotes, absences, weeklyPlan, createWorker: handleCreateWorker, updateWorker: handleUpdateWorker, removeWorker: handleRemoveWorker, createStation: handleCreateStation, updateStation: handleUpdateStation, removeStation: handleRemoveStation, createAssignment: handleCreateAssignment, updateAssignment: handleUpdateAssignment, removeAssignment: handleRemoveAssignment, saveDailyNote: handleSaveDailyNote, autoAssignPreferredWorkers: handleAutoAssignPreferredWorkers, createAbsence: handleCreateAbsence, removeAbsence: handleRemoveAbsence, publishWeeklyPlan: handlePublishWeeklyPlan, monday, weekDays, selectedWeekDate, setSelectedWeekDate, loadingWorkers, workersError, loadingStations, stationsError, loadingAssignments, assignmentsError }}><Outlet /></AppContext.Provider>
 }
 
 export default AppProvider

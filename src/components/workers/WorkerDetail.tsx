@@ -27,6 +27,7 @@ function WorkerDetail({ worker, onRemoveWorker, setSelectedWorker, assignments, 
   const [absenceEnd, setAbsenceEnd] = useState(toDateKey(weekStart))
   const [absenceNote, setAbsenceNote] = useState('')
   const [savingAbsence, setSavingAbsence] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
   if (!worker) return null
   const currentWorker = worker
   function updateNumber(field: 'vacationDays' | 'plusHours', amountText: string, operation: 'add' | 'remove') {
@@ -47,7 +48,7 @@ function WorkerDetail({ worker, onRemoveWorker, setSelectedWorker, assignments, 
     <Divider />
     <NumberInput label="Adjust vacation days" min={1} value={vacationDays} onChange={(value) => setVacationDays(String(value))} /><Group grow><Button variant="light" onClick={() => updateNumber('vacationDays', vacationDays, 'add')}>Add</Button><Button variant="light" color="gray" onClick={() => updateNumber('vacationDays', vacationDays, 'remove')}>Remove</Button></Group>
     <NumberInput label="Adjust overtime hours" min={1} value={plusHours} onChange={(value) => setPlusHours(String(value))} /><Group grow><Button variant="light" onClick={() => updateNumber('plusHours', plusHours, 'add')}>Add</Button><Button variant="light" color="gray" onClick={() => updateNumber('plusHours', plusHours, 'remove')}>Remove</Button></Group>
-    <Divider /><Group justify="space-between"><Button color="red" variant="subtle" onClick={() => void onRemoveWorker(worker)}>Delete worker</Button><Button variant="default" onClick={() => setSelectedWorker(null)}>Close</Button></Group>
+    <Divider />{confirmDelete ? <Stack gap="xs"><Text size="sm" c="red" fw={600}>Permanently delete {worker.name} and all of their assignments? This cannot be undone.</Text><Group><Button color="red" onClick={() => void onRemoveWorker(worker)}>Confirm permanent deletion</Button><Button variant="default" onClick={() => setConfirmDelete(false)}>Cancel</Button></Group></Stack> : <Group justify="space-between"><Button color="red" variant="subtle" onClick={() => setConfirmDelete(true)}>Delete worker</Button><Button variant="default" onClick={() => setSelectedWorker(null)}>Close</Button></Group>}
   </Stack></Paper>
 }
 

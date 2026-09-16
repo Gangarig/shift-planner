@@ -4,6 +4,7 @@ import type { Station, NewStation } from '../types/Station'
 import type { Assignment, NewAssignment } from '../types/Assignment'
 import type { DailyNote } from '../types/DailyNote'
 import type { NewWorkerAbsence, WorkerAbsence } from '../types/WorkerAbsence'
+import type { WeeklyPlan } from '../types/WeeklyPlan'
 
 export interface AppContextValue {
   workers: Worker[]
@@ -11,6 +12,7 @@ export interface AppContextValue {
   assignments: Assignment[]
   dailyNotes: DailyNote[]
   absences: WorkerAbsence[]
+  weeklyPlan: WeeklyPlan | null
   createWorker: (worker: NewWorker) => Promise<boolean>
   updateWorker: (worker: Worker) => Promise<boolean>
   removeWorker: (worker: Worker) => Promise<boolean>
@@ -24,6 +26,7 @@ export interface AppContextValue {
   autoAssignPreferredWorkers: () => Promise<number | null>
   createAbsence: (value: NewWorkerAbsence) => Promise<boolean>
   removeAbsence: (id: string) => Promise<boolean>
+  publishWeeklyPlan: () => Promise<boolean>
   monday: Date
   weekDays: { label: string; date: Date }[]
   selectedWeekDate: Date

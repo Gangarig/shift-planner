@@ -1,4 +1,4 @@
-import { Badge, Button, Group, Menu, Paper, Stack, Text } from '@mantine/core'
+import { Alert, Badge, Button, Group, Menu, Paper, Stack, Text } from '@mantine/core'
 import { Link } from 'react-router-dom'
 import useApp from '../../hooks/useApp'
 import { toDateKey } from '../../lib/dateUtils'
@@ -9,7 +9,7 @@ import type { WorkerStatus } from '../../types/Worker'
 const statusColors = { available: 'green', late: 'orange', sick: 'red', holiday: 'yellow', inactive: 'gray' } as const
 
 function WorkerAvailability() {
-  const { workers, assignments, stations, weekDays, updateWorker } = useApp()
+  const { workers, assignments, stations, weekDays, updateWorker, weeklyPlan } = useApp()
   const { user } = useAuth()
   const canManageWorkers = user?.role === 'owner' || user?.role === 'admin' || user?.role === 'manager'
   const statuses: WorkerStatus[] = ['available', 'late', 'sick', 'holiday', 'inactive']
@@ -17,6 +17,8 @@ function WorkerAvailability() {
   const dates = new Set(weekDays.map(day => toDateKey(day.date)))
   const weekAssignments = assignments.filter(assignment => dates.has(toDateKey(assignment.date)))
   const dateLabel = (date: Date) => date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+
+  if (!canManageWorkers && weeklyPlan?.status !== 'published') return <Stack gap="sm"><Group justify="space-between"><div><Text fw={700} size="lg">This week’s plan</Text><Text size="sm" c="dimmed">The schedule will appear after publication.</Text></div><Button component={Link} to="/planner" variant="light">Open planner</Button></Group><Alert color="blue">A manager or administrator is still preparing this week.</Alert></Stack>
 
   return <Stack gap="sm">
     <Group justify="space-between" align="flex-end">

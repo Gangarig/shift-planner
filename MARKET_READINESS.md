@@ -7,6 +7,8 @@
 - Multiple workers per station, shift times, dated absences/delays, daily notes, preferred stations, manual overrides, sharing, A4 printing, and CSV export.
 - RLS on every exposed table, immediate disabled-account blocking, protected audit records, and restricted function access.
 - Owner-visible audit history and live schedule refresh across signed-in devices.
+- Manager/admin/owner weekly publication, complete published-week visibility for workers, and protected realtime in-app notifications.
+- One-year audit retention with owner CSV export; permanent worker deletion also removes their assignments.
 - Clean CI checks, pinned dependencies, zero known production dependency vulnerabilities, and recoverable error/404 screens.
 
 ## Required before using real employee data
@@ -17,7 +19,7 @@
 - Complete a signed-in phone/desktop walkthrough for invitations, password reset, every role, drag/drop, touch assignment, sharing, and printing.
 - Add privacy information, an employee-data retention policy, support contact, terms appropriate to the business, and the required processor agreements. Obtain legal review rather than treating repository text as legal advice.
 - Choose a production domain/host and add monitoring for frontend errors, Edge Function failures, database health, and deployment failures.
-- Decide whether schedules need draft/published approval, edit locking, and employee notifications before broader use.
+- Decide later whether in-app notifications should be supplemented with device push or email delivery.
 
 ## Required before selling as a multi-company SaaS
 
