@@ -9,52 +9,37 @@ body {
 }
 
 [data-mantine-color-scheme='light'] {
-  --mantine-color-body: #dcc3aa;
-  --mantine-color-text: #541a1a;
-  --mantine-color-dimmed: #765451;
-  --mantine-color-default: #f1e2d1;
-  --mantine-color-default-hover: #e8d2bc;
-  --mantine-color-default-border: #c7a88f;
-  --mantine-color-blue-light: rgba(129, 11, 56, 0.12);
-  --mantine-color-blue-light-hover: rgba(129, 11, 56, 0.18);
-  --mantine-color-blue-light-color: #810b38;
-  --app-surface-soft: #e4ccb5;
-  --app-surface-raised: #f1e2d1;
-  --app-border: #c7a88f;
-  --app-assignment: #e7c4c4;
-  --app-empty: #f1e2d1;
-  --app-drop-target: #ead0d8;
-  --app-accent: #810b38;
-  --app-focus: #810b38;
-  --app-holiday: #ead8c5;
-  --app-holiday-stripe: #dfc7ae;
+  --mantine-color-body: #c8bfb1;
+  --mantine-color-text: #2f2d29;
+  --mantine-color-dimmed: #625e57;
+  --mantine-color-default: #e8e1d6;
+  --mantine-color-default-hover: #d8cfc1;
+  --mantine-color-default-border: #b9ad9d;
+  --mantine-color-blue-light: rgba(71, 127, 167, 0.13);
+  --mantine-color-blue-light-hover: rgba(71, 127, 167, 0.19);
+  --mantine-color-blue-light-color: #295978;
+  --app-surface-soft: #cec5b7;
+  --app-surface-raised: #e8e1d6;
+  --app-border: #b9ad9d;
+  --app-assignment: #c9d7d5;
+  --app-empty: #e8e1d6;
 }
 
 [data-mantine-color-scheme='dark'] {
-  --mantine-color-body: #1e201e;
-  --mantine-color-text: #ecdfcc;
-  --mantine-color-dimmed: #b7b09f;
-  --mantine-color-default: #3c3d37;
-  --mantine-color-default-hover: #494b43;
-  --mantine-color-default-border: #697565;
-  --mantine-color-blue-light: rgba(105, 117, 101, 0.28);
-  --mantine-color-blue-light-hover: rgba(105, 117, 101, 0.38);
-  --mantine-color-blue-light-color: #ecdfcc;
-  --mantine-primary-color-filled: #697565;
-  --mantine-primary-color-filled-hover: #7d8978;
-  --mantine-primary-color-light: rgba(105, 117, 101, 0.28);
-  --mantine-primary-color-light-hover: rgba(105, 117, 101, 0.38);
-  --mantine-primary-color-light-color: #ecdfcc;
-  --app-surface-soft: #343630;
-  --app-surface-raised: #3c3d37;
-  --app-border: #697565;
-  --app-assignment: #4b5549;
-  --app-empty: #3c3d37;
-  --app-drop-target: #596655;
-  --app-accent: #697565;
-  --app-focus: #a9b3a4;
-  --app-holiday: #343630;
-  --app-holiday-stripe: #2a2c29;
+  --mantine-color-body: #111827;
+  --mantine-color-text: #e5e7eb;
+  --mantine-color-dimmed: #9ca3af;
+  --mantine-color-default: #1f2937;
+  --mantine-color-default-hover: #273449;
+  --mantine-color-default-border: #374151;
+  --mantine-color-blue-light: rgba(59, 130, 246, 0.16);
+  --mantine-color-blue-light-hover: rgba(59, 130, 246, 0.22);
+  --mantine-color-blue-light-color: #93c5fd;
+  --app-surface-soft: #1f2937;
+  --app-surface-raised: #18212f;
+  --app-border: #374151;
+  --app-assignment: #172f52;
+  --app-empty: #18212f;
 }
 
 [data-mantine-color-scheme='light'] .mantine-Paper-root,
@@ -62,10 +47,10 @@ body {
   background-color: var(--app-surface-raised);
 }
 
-[data-mantine-color-scheme] .mantine-Popover-dropdown,
-[data-mantine-color-scheme] .mantine-Modal-content,
-[data-mantine-color-scheme] .mantine-Drawer-content,
-[data-mantine-color-scheme] .mantine-Input-input {
+[data-mantine-color-scheme='light'] .mantine-Popover-dropdown,
+[data-mantine-color-scheme='light'] .mantine-Modal-content,
+[data-mantine-color-scheme='light'] .mantine-Drawer-content,
+[data-mantine-color-scheme='light'] .mantine-Input-input {
   background-color: var(--app-surface-raised);
   border-color: var(--app-border);
 }
@@ -137,8 +122,8 @@ body {
 }
 
 .planner-grid-cell--drop-target {
-  background: var(--app-drop-target);
-  box-shadow: inset 0 0 0 2px var(--app-focus);
+  background: #e4f2f9;
+  box-shadow: inset 0 0 0 2px #4b93b9;
 }
 
 .planner-grid-cell[draggable='true'] {
@@ -147,7 +132,7 @@ body {
 
 .planner-grid-cell[draggable='true']:hover {
   transform: translateY(-1px);
-  box-shadow: inset 0 0 0 1px var(--app-focus);
+  box-shadow: inset 0 0 0 1px #92b9cc;
 }
 
 .planner-matrix {
@@ -259,12 +244,12 @@ body {
 .schedule-table th:first-child { width: 120px; position: sticky; left: 0; background: var(--app-surface-soft); }
 .schedule-table tbody th { z-index: 1; padding: 6px; font-size: 11px; line-height: 1.15; text-align: left; overflow-wrap: anywhere; }
 .schedule-table th span, .schedule-table th small { display: block; color: var(--mantine-color-dimmed); font-weight: 400; margin-top: 2px; }
-.day-note-button { display: block; width: 100%; margin-top: 3px; padding: 2px 3px; border: 0; border-radius: 4px; background: var(--mantine-color-blue-light); color: var(--mantine-color-text); font: inherit; font-size: 9px; line-height: 1.15; text-align: left; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.day-note-button { display: block; width: 100%; margin-top: 3px; padding: 2px 3px; border: 0; border-radius: 4px; background: rgba(68,120,158,.09); color: var(--mantine-color-text); font: inherit; font-size: 9px; line-height: 1.15; text-align: left; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .schedule-table .today { box-shadow: inset 0 3px var(--mantine-primary-color-filled); }
-.schedule-table .holiday-column { background: var(--app-holiday); color: var(--mantine-color-dimmed); }
-.schedule-table .holiday-column small { color: var(--mantine-color-dimmed); font-size: 9px; line-height: 1.2; }
+.schedule-table .holiday-column { background: #f2f3f5; color: #59636e; }
+.schedule-table .holiday-column small { color: #59636e; font-size: 9px; line-height: 1.2; }
 .schedule-table td { padding: 2px; }
-.schedule-table td.holiday-cell { padding: 0; background: repeating-linear-gradient(135deg, var(--app-holiday), var(--app-holiday) 7px, var(--app-holiday-stripe) 7px, var(--app-holiday-stripe) 14px); }
+.schedule-table td.holiday-cell { padding: 0; background: repeating-linear-gradient(135deg, #f5f6f7, #f5f6f7 7px, #eceff1 7px, #eceff1 14px); }
 .schedule-cell { font: inherit; width: 100%; min-height: 46px; padding: 2px; text-align: left; border: 1px solid transparent; border-radius: 6px; color: var(--mantine-color-text); background: transparent; }
 .schedule-cell strong, .schedule-cell span { display: block; overflow-wrap: anywhere; }
 .schedule-cell strong { font-size: 11px; line-height: 1.15; font-weight: 600; }
@@ -277,11 +262,11 @@ body {
 .cell-assignment:hover { filter: brightness(.98); }
 .cell-empty-label { display: grid !important; min-height: 100%; place-items: center; margin: 0 !important; font-size: 14px !important; color: var(--mantine-color-dimmed); }
 .schedule-cell.empty { text-align: center; cursor: pointer; }
-.schedule-cell:enabled:hover { border-color: var(--app-focus); background: var(--app-surface-soft); }
+.schedule-cell:enabled:hover { border-color: #7898b5; background: var(--app-surface-soft); }
 .schedule-cell:disabled { cursor: default; }
-.schedule-cell:focus-visible, .roster-worker:focus-visible { outline: 2px solid var(--app-focus); outline-offset: 1px; }
+.schedule-cell:focus-visible, .roster-worker:focus-visible { outline: 2px solid #44789e; outline-offset: 1px; }
 .compact .schedule-cell { min-height: 34px; padding: 1px; }
-.drop-target { background: var(--app-drop-target); box-shadow: inset 0 0 0 2px var(--app-focus); }
+.drop-target { background: var(--app-assignment); box-shadow: inset 0 0 0 2px #44789e; }
 .schedule-roster { position: sticky; top: 85px; }
 .roster-list { max-height: 64dvh; overflow: auto; }
 .roster-worker { display: flex; width: 100%; min-height: 40px; gap: 6px; align-items: center; text-align: left; font: inherit; border: 1px solid transparent; background: transparent; color: var(--mantine-color-text); padding: 4px; border-radius: 6px; cursor: grab; }
