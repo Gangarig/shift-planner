@@ -270,7 +270,13 @@ body {
 .dashboard-roster-worker:hover { background: transparent; border-color: transparent; }
 .dashboard-roster-link { cursor: pointer; }
 .dashboard-roster-link:hover { background: var(--app-assignment); border-color: var(--app-border); }
-.worker-options-menu { max-height: min(420px, 70dvh); overflow-y: auto; overscroll-behavior: contain; }
+.worker-options-menu {
+  max-height: min(420px, 70dvh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  -webkit-overflow-scrolling: touch;
+}
 .notification-button { position: relative; }
 .notification-count { position: absolute; top: -3px; right: -5px; pointer-events: none; }
 .notification-menu { max-height: min(480px, 75dvh); overflow-y: auto; overscroll-behavior: contain; }
@@ -284,6 +290,13 @@ body {
 .print-week-title { display: none; }
 @media (max-width: 58em) { .schedule-layout { grid-template-columns: minmax(0, 1fr); } .schedule-roster { position: static; } .roster-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); max-height: 180px; } }
 @media (max-width: 48em) {
+  .mantine-AppShell-main {
+    padding-bottom: calc(7rem + env(safe-area-inset-bottom));
+  }
+  .worker-options-menu {
+    max-height: min(360px, 48dvh);
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  }
   .schedule-scroll { overflow-x: auto; overflow-y: visible; overscroll-behavior-x: contain; }
   .schedule-table { min-width: 560px; }
 }
