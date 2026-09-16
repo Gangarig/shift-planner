@@ -11,7 +11,7 @@ import AppErrorBoundary from './components/AppErrorBoundary.tsx'
 const theme = createTheme({
   primaryColor: 'blue',
   primaryShade: 7,
-  colors: { blue: ['#f0f6fb','#e1edf6','#c3daec','#a3c5df','#80adce','#6195b9','#477fa7','#346b91','#295978','#234b65'] },
+  colors: { blue: ['#f9eef2', '#f2d6e0', '#e8b5c8', '#da89a6', '#c75a80', '#ad315e', '#951947', '#810b38', '#68102f', '#541a1a'] },
   defaultRadius: 'md',
   fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
 });
