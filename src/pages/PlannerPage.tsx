@@ -179,7 +179,7 @@ export default function PlannerPage() {
             onClick={() => setSelection({ kind: 'worker', id: w.id })}
             onDragStart={e => { dragging.current = { kind: 'worker', id: w.id }; e.dataTransfer.setData('text/plain', w.id); e.dataTransfer.effectAllowed = 'copy' }}
             onDragEnd={() => { dragging.current = null; setTarget('') }}>
-            <span className="roster-avatar">{w.name.slice(0, 2).toUpperCase()}</span><span><strong>{w.name}</strong><small>{w.status} · {weekAssignments.filter(a => a.workerId === w.id).length} shifts this week</small></span>
+            <span><strong>{w.name}</strong><small>{w.status} · {weekAssignments.filter(a => a.workerId === w.id).length} shifts this week</small></span>
           </button>)}</div>
           {!workers.length && <Text size="sm" c="dimmed">No matching workers.</Text>}
         </Stack>

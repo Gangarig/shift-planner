@@ -294,6 +294,11 @@ body {
 .notification-count { position: absolute; top: -3px; right: -5px; pointer-events: none; }
 .notification-menu { max-height: min(480px, 75dvh); overflow-y: auto; overscroll-behavior: contain; }
 .notification-unread { background: var(--app-assignment); }
+.team-access-table-wrap { overflow-x: auto; }
+.team-access-table th { padding-block: 6px; font-size: 11px; white-space: nowrap; }
+.team-access-table td { padding-block: 4px; }
+.team-access-table .mantine-Select-root { min-width: 132px; }
+.team-access-table .mantine-Button-root { white-space: nowrap; }
 .roster-avatar { display: grid; place-items: center; flex-shrink: 0; width: 27px; height: 27px; border-radius: 50%; background: var(--app-surface-soft); font-size: 9px; font-weight: 700; }
 .dashboard-page h1, .planner-page h1 { font-size: clamp(1.35rem, 2vw, 1.75rem); }
 .dashboard-summary .mantine-SimpleGrid-root { gap: 8px; }
@@ -313,6 +318,10 @@ body {
   }
   .schedule-scroll { overflow-x: auto; overflow-y: visible; overscroll-behavior-x: contain; }
   .schedule-table { min-width: 560px; }
+  .team-access-page { gap: 8px; }
+  .team-access-table { min-width: 650px; }
+  .team-access-table th { padding-block: 4px; }
+  .team-access-table td { padding-block: 3px; }
 }
 @media (max-width: 36em) {
   .schedule-table th:first-child { width: 92px; }

@@ -71,17 +71,17 @@ export default function TeamAccessPage() {
     catch (reason) { notifications.show({ color: 'red', title: 'Deletion failed', message: errorMessage(reason) }) }
   }
 
-  return <Stack className="page-container" gap="lg" pos="relative">
+  return <Stack className="page-container team-access-page" gap="sm" pos="relative">
     <LoadingOverlay visible={loading} />
     <Group justify="space-between" align="flex-end"><div><Title order={1}>Team & Access</Title><Text c="dimmed">Invite people and control what they can do in this workspace.</Text></div><Button onClick={open}>Invite person</Button></Group>
     {error && <Alert color="red" title="Could not load accounts">{error}</Alert>}
     <Alert color="blue" variant="light">Worker records are people on the schedule. Login accounts are optional and control who can open this app.</Alert>
-    <Paper withBorder style={{ overflowX: 'auto' }}>
-      <Table verticalSpacing="md" horizontalSpacing="md" miw={760}>
+    <Paper withBorder className="team-access-table-wrap">
+      <Table verticalSpacing="xs" horizontalSpacing="xs" miw={700} className="team-access-table">
         <Table.Thead><Table.Tr><Table.Th>Person</Table.Th><Table.Th>Status</Table.Th><Table.Th>Role</Table.Th><Table.Th>Linked worker</Table.Th><Table.Th ta="right">Action</Table.Th></Table.Tr></Table.Thead>
         <Table.Tbody>{members.map((member) => {
           const self = member.id === user?.id
-          return <Table.Tr key={member.id}><Table.Td><Text fw={600}>{member.fullName}</Text><Text c="dimmed" size="sm">{member.email}</Text></Table.Td><Table.Td><Badge color={member.status === 'active' ? 'green' : member.status === 'invited' ? 'blue' : 'gray'} variant="light">{member.status}</Badge></Table.Td><Table.Td><Select aria-label={`Role for ${member.fullName}`} data={roleOptions} value={member.role} disabled={self} onChange={(value) => value && void update(member, value as AppRole, member.workerId)} /></Table.Td><Table.Td><Select aria-label={`Linked worker for ${member.fullName}`} searchable clearable data={workerOptions} value={member.workerId ?? ''} onChange={(value) => void update(member, member.role, value || null)} /></Table.Td><Table.Td ta="right">{member.status === 'invited' ? <Button color="red" variant="subtle" size="xs" onClick={() => void removeInvite(member)}>Delete invitation</Button> : <Button color={member.status === 'disabled' ? 'blue' : 'red'} variant="subtle" size="xs" disabled={self} onClick={() => void toggleDisabled(member)}>{member.status === 'disabled' ? 'Restore' : 'Disable'}</Button>}</Table.Td></Table.Tr>
+          return <Table.Tr key={member.id}><Table.Td><Text fw={600} size="sm" lh={1.15}>{member.fullName}</Text><Text c="dimmed" size="xs" lh={1.15}>{member.email}</Text></Table.Td><Table.Td><Badge size="sm" color={member.status === 'active' ? 'green' : member.status === 'invited' ? 'blue' : 'gray'} variant="light">{member.status}</Badge></Table.Td><Table.Td><Select size="xs" aria-label={`Role for ${member.fullName}`} data={roleOptions} value={member.role} disabled={self} onChange={(value) => value && void update(member, value as AppRole, member.workerId)} /></Table.Td><Table.Td><Select size="xs" aria-label={`Linked worker for ${member.fullName}`} searchable clearable data={workerOptions} value={member.workerId ?? ''} onChange={(value) => void update(member, member.role, value || null)} /></Table.Td><Table.Td ta="right">{member.status === 'invited' ? <Button color="red" variant="subtle" size="compact-xs" onClick={() => void removeInvite(member)}>Delete invitation</Button> : <Button color={member.status === 'disabled' ? 'blue' : 'red'} variant="subtle" size="compact-xs" disabled={self} onClick={() => void toggleDisabled(member)}>{member.status === 'disabled' ? 'Restore' : 'Disable'}</Button>}</Table.Td></Table.Tr>
         })}</Table.Tbody>
       </Table>
       {!loading && members.length === 0 && <Text p="xl" ta="center" c="dimmed">No accounts found.</Text>}
