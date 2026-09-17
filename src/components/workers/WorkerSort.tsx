@@ -1,12 +1,15 @@
 interface SortProps {
-  sortOrder:'Default' | 'Name A-Z' | 'Name Z-A' | 'Status',
-  onSort:(value:'Default' | 'Name A-Z' | 'Name Z-A' | 'Status')=>void
+  sortOrder: 'Default' | 'Name A-Z' | 'Name Z-A' | 'Status'
+  onSort: (value: 'Default' | 'Name A-Z' | 'Name Z-A' | 'Status') => void
 }
-function WorkerSort({sortOrder,onSort}:SortProps) {
+function WorkerSort({ sortOrder, onSort }: SortProps) {
   return (
-    <Select aria-label="Sort workers" value={sortOrder}
+    <Select
+      aria-label="Sort workers"
+      value={sortOrder}
       data={['Default', 'Name A-Z', 'Name Z-A', 'Status']}
-      onChange={(value) => value && onSort(value as SortProps['sortOrder'])} />
+      onChange={(value) => value && onSort(value as SortProps['sortOrder'])}
+    />
   )
 }
 

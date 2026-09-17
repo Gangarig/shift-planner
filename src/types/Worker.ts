@@ -1,4 +1,5 @@
-export type WorkerStatus = 'available' | 'late' | 'sick' | 'holiday' | 'inactive'
+export type WorkerStatus =
+  'available' | 'late' | 'sick' | 'holiday' | 'inactive'
 
 export interface Worker {
   id: string

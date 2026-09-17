@@ -10,13 +10,13 @@ Planners can assign several workers to one station, move assignments, record shi
 
 ## Access by role
 
-| Role | What they can do |
-| --- | --- |
-| Worker | View the complete published weekly plan, see their own dashboard, request leave or absence, upload supporting documents, and open their own payslips. |
-| Manager | Create and change plans, workers, stations, notes, statuses, and main stations; publish, share, and print weeks. |
-| Admin | Manager access plus company closures, exports, account settings, and read-only payroll oversight. |
-| Accountant | Review and approve leave requests, verify supporting documents, record overtime, and upload private payslips. They cannot change the work plan. |
-| Owner | Full planning and settings access, invitations and account removal, protected audit history, and read-only payroll oversight. Accountant approval remains separate. |
+| Role       | What they can do                                                                                                                                                    |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Worker     | View the complete published weekly plan, see their own dashboard, request leave or absence, upload supporting documents, and open their own payslips.               |
+| Manager    | Create and change plans, workers, stations, notes, statuses, and main stations; publish, share, and print weeks.                                                    |
+| Admin      | Manager access plus company closures, exports, account settings, and read-only payroll oversight.                                                                   |
+| Accountant | Review and approve leave requests, verify supporting documents, record overtime, and upload private payslips. They cannot change the work plan.                     |
+| Owner      | Full planning and settings access, invitations and account removal, protected audit history, and read-only payroll oversight. Accountant approval remains separate. |
 
 ## Start using it
 
@@ -83,4 +83,3 @@ Only the owner manages login accounts. The owner can change roles, link a login 
 The current release is designed for a controlled pilot at one company. It has protected routes, database row-level access rules, private document storage, audit logging, schedule integrity rules, automated tests, and continuous deployment.
 
 Before storing normal production employee data, finish the operational setup: production SMTP and branded email, final domain and Auth redirect addresses, a restore-tested backup plan, privacy/retention information, a support contact, and a signed-in walkthrough on the phones and computers the company will use. Supabase’s leaked-password check requires a paid plan; the current 10-character minimum and secure password-change settings remain enabled on the Free plan.
-

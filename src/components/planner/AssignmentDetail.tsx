@@ -1,5 +1,14 @@
 import { useState } from 'react'
-import { Badge, Button, Group, Paper, Stack, Text, Textarea, Title } from '@mantine/core'
+import {
+  Badge,
+  Button,
+  Group,
+  Paper,
+  Stack,
+  Text,
+  Textarea,
+  Title,
+} from '@mantine/core'
 import type { Assignment } from '../../types/Assignment'
 import type { Worker } from '../../types/Worker'
 import type { Station } from '../../types/Station'
@@ -35,7 +44,9 @@ function AssignmentDetail({
         <Group justify="space-between" align="flex-start">
           <div>
             <Title order={3}>Assignment details</Title>
-            <Text size="sm" c="dimmed">Review the shift and leave a handover note.</Text>
+            <Text size="sm" c="dimmed">
+              Review the shift and leave a handover note.
+            </Text>
           </div>
           <Badge variant="light">{assignment.date.toLocaleDateString()}</Badge>
         </Group>
@@ -43,10 +54,14 @@ function AssignmentDetail({
         <Group>
           <div style={{ flex: 1 }}>
             <Text fw={600}>{worker.name}</Text>
-            <Text size="sm" c="dimmed">{worker.role}</Text>
+            <Text size="sm" c="dimmed">
+              {worker.role}
+            </Text>
           </div>
           <div>
-            <Text size="xs" c="dimmed">Station</Text>
+            <Text size="xs" c="dimmed">
+              Station
+            </Text>
             <Text fw={600}>{station.name}</Text>
           </div>
         </Group>
@@ -62,8 +77,13 @@ function AssignmentDetail({
         />
 
         <Group justify="flex-end">
-          <Button variant="default" onClick={onClose}>Close</Button>
-          <Button onClick={handleSave} disabled={note.trim() === (assignment.note ?? '').trim()}>
+          <Button variant="default" onClick={onClose}>
+            Close
+          </Button>
+          <Button
+            onClick={handleSave}
+            disabled={note.trim() === (assignment.note ?? '').trim()}
+          >
             Save note
           </Button>
         </Group>

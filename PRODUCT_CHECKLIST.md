@@ -38,6 +38,7 @@ This release keeps the existing dashboard, planner, workers, stations, and setti
 Current product serves one company, Monday through Friday. A station can have multiple workers, but each worker can only occupy one station per day. Worker records are separate from login accounts. No extra login accounts or shared passwords are required for sample workers.
 
 Future product work: company membership and tenant isolation, leave approval workflows, optional phone push/email delivery, and production email configuration. Payroll and time-clock integration are intentionally out of scope.
+
 ## Verified this release
 
 Automated scheduling/date checks pass. Live database checks cover RLS, grants, function access, draft privacy, publication, notifications, permanent worker deletion, date and time integrity, double-booking, dated absences, note editing, and atomic selected-week cleanup. Lint and production build pass.

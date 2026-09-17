@@ -11,17 +11,39 @@ function toAssignment(record: Assignment) {
 }
 
 export async function createAssignment(newAssignment: NewAssignment) {
-  const { error } = await supabase.from('assignments').insert(toDatabaseAssignment(newAssignment)).select().single()
+  const { error } = await supabase
+    .from('assignments')
+    .insert(toDatabaseAssignment(newAssignment))
+    .select()
+    .single()
   if (error) throw error
 }
 
 export async function removeAssignment(assignment: Assignment) {
-  const { error } = await supabase.from('assignments').delete().eq('id', assignment.id).select('id').single()
+  const { error } = await supabase
+    .from('assignments')
+    .delete()
+    .eq('id', assignment.id)
+    .select('id')
+    .single()
   if (error) throw error
 }
 
 export async function updateAssignment(assignment: Assignment) {
-  const { error } = await supabase.from('assignments').update({ workerId: assignment.workerId, stationId: assignment.stationId, date: toDateKey(assignment.date), note: assignment.note, source: assignment.source ?? 'manual', startTime: assignment.startTime, endTime: assignment.endTime }).eq('id', assignment.id).select('id').single()
+  const { error } = await supabase
+    .from('assignments')
+    .update({
+      workerId: assignment.workerId,
+      stationId: assignment.stationId,
+      date: toDateKey(assignment.date),
+      note: assignment.note,
+      source: assignment.source ?? 'manual',
+      startTime: assignment.startTime,
+      endTime: assignment.endTime,
+    })
+    .eq('id', assignment.id)
+    .select('id')
+    .single()
   if (error) throw error
 }
 
