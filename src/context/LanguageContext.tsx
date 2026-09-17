@@ -20,7 +20,7 @@ const messages = {
   },
 } as const
 
-type MessageKey = keyof typeof messages.en
+export type MessageKey = keyof typeof messages.en
 interface LanguageContextValue {
   language: Language
   setLanguage: (language: Language) => void
