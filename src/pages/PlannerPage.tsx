@@ -131,11 +131,20 @@ export default function PlannerPage() {
     app.setSelectedWeekDate(next); setSelection(null); setMessage('')
   }
   const workingDays = days.filter(day => !austrianPublicHoliday(day.date) && !companyClosure(day.date))
+  const workerWeekSummary = (workerId: string) => {
+    const leaveDays = workingDays.filter(day => blockingAbsence(workerId, day.date))
+    const vacationDays = leaveDays.filter(day => blockingAbsence(workerId, day.date)?.status === 'holiday').length
+    const sickDays = leaveDays.length - vacationDays
+    const assignedDates = new Set(weekAssignments.filter(item => item.workerId === workerId).map(item => toDateKey(item.date)))
+    const canReceiveAssignment = workingDays.some(day => !blockingAbsence(workerId, day.date) && !assignedDates.has(toDateKey(day.date)))
+    const leave = [vacationDays ? `Vacation ${vacationDays}d` : '', sickDays ? `Sick ${sickDays}d` : ''].filter(Boolean).join(' · ')
+    return { canReceiveAssignment, leave }
+  }
   const coverage = app.stations.filter(s => s.active).length * workingDays.length
   return <Stack className="page-container planner-page" gap="sm">
     <Group justify="space-between" className="planner-heading">
       <div><Text size="xs" tt="uppercase" fw={700} c="dimmed">Your workspace / Schedule</Text><Title order={1}>Weekly planner</Title><Text c="dimmed">{canEdit ? 'Choose a worker, then click an empty cell. Dragging works too.' : 'Published team schedule · read-only.'}</Text></div>
-      <Group className="planner-actions">{canEdit && <Button variant="filled" loading={busy} onClick={() => void save(async () => (await app.autoAssignPreferredWorkers()) !== null)}>Fill main stations</Button>}{canEdit && <Button color="green" loading={busy} disabled={!weekAssignments.length} onClick={() => setConfirmPublish(true)}>{isPublished ? 'Publish update' : 'Publish week'}</Button>}<Button variant="light" onClick={() => void shareWeeklyPlan()}>Share weekly plan</Button><Button variant="default" onClick={() => window.print()}>Print A4</Button><Badge variant="light" color={isPublished ? 'green' : 'gray'}>{isPublished ? `Published · revision ${app.weeklyPlan?.revision}` : 'Draft'}</Badge>{canEdit&&<Badge variant="light" color="blue">{weekAssignments.length} scheduled · {Math.max(0, coverage - new Set(weekAssignments.filter(a => app.stations.find(s => s.id === a.stationId)?.active).map(a => `${a.stationId}-${toDateKey(a.date)}`)).size)} open</Badge>}</Group>
+      <Group className="planner-actions">{canEdit && <Button variant="filled" loading={busy} onClick={() => void save(async () => (await app.autoAssignPreferredWorkers()) !== null)}>Fill main stations</Button>}{canEdit && <Button color="green" loading={busy} onClick={() => setConfirmPublish(true)}>{isPublished ? 'Publish update' : 'Publish week'}</Button>}<Button variant="light" onClick={() => void shareWeeklyPlan()}>Share weekly plan</Button><Button variant="default" onClick={() => window.print()}>Print A4</Button><Badge variant="light" color={isPublished ? 'green' : 'gray'}>{isPublished ? `Published · revision ${app.weeklyPlan?.revision}` : 'Draft'}</Badge>{canEdit&&<Badge variant="light" color="blue">{weekAssignments.length} scheduled · {Math.max(0, coverage - new Set(weekAssignments.filter(a => app.stations.find(s => s.id === a.stationId)?.active).map(a => `${a.stationId}-${toDateKey(a.date)}`)).size)} open</Badge>}</Group>
     </Group>
     <Text className="print-week-title" fw={700}>Week {dateLabel(days[0].date)} – {dateLabel(days[4].date)}, {days[0].date.getFullYear()}</Text>
     <Paper withBorder p="md" className="planner-week-controls">
@@ -175,12 +184,12 @@ export default function PlannerPage() {
       </Stack>
       {canEdit&&<Paper withBorder p="xs" className="schedule-roster">
         <Stack gap="sm"><Group justify="space-between"><Text fw={700}>Team</Text><Badge color="gray" variant="light">{app.workers.length}</Badge></Group><TextInput placeholder="Find a worker…" aria-label="Find a worker" value={workerSearch} onChange={e => setWorkerSearch(e.currentTarget.value)} />
-          <div className="roster-list">{workers.map(w => <button type="button" className={'roster-worker ' + (selection?.kind === 'worker' && selection.id === w.id ? 'selected' : '')} key={w.id} disabled={!canEdit || !['available', 'late'].includes(w.status) || busy} draggable={canEdit && ['available', 'late'].includes(w.status) && !busy}
+          <div className="roster-list">{workers.map(w => { const summary = workerWeekSummary(w.id); const enabled = canEdit && ['available', 'late'].includes(w.status) && summary.canReceiveAssignment && !busy; return <button type="button" className={'roster-worker ' + (selection?.kind === 'worker' && selection.id === w.id ? 'selected' : '')} key={w.id} disabled={!enabled} draggable={enabled}
             onClick={() => setSelection({ kind: 'worker', id: w.id })}
             onDragStart={e => { dragging.current = { kind: 'worker', id: w.id }; e.dataTransfer.setData('text/plain', w.id); e.dataTransfer.effectAllowed = 'copy' }}
             onDragEnd={() => { dragging.current = null; setTarget('') }}>
-            <span><strong>{w.name}</strong><small>{w.status} · {weekAssignments.filter(a => a.workerId === w.id).length} shifts this week</small></span>
-          </button>)}</div>
+            <span><strong>{w.name}</strong><small>{summary.leave || w.status} · {weekAssignments.filter(a => a.workerId === w.id).length} shifts</small></span>
+          </button> })}</div>
           {!workers.length && <Text size="sm" c="dimmed">No matching workers.</Text>}
         </Stack>
       </Paper>}

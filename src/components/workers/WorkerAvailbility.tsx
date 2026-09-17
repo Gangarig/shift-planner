@@ -24,7 +24,7 @@ function WorkerAvailability() {
   return <Stack gap="sm">
     <Group justify="space-between" align="flex-end">
       <div><Text fw={700} size="lg">This week’s plan</Text><Text size="sm" c="dimmed">Trusted planners can fill, publish, print, and open the full editor here.</Text></div>
-      <Group>{canManageWorkers && <Button variant="default" onClick={() => void autoAssignPreferredWorkers()}>Fill main stations</Button>}{canManageWorkers && <Button color="green" disabled={!weekAssignments.length} onClick={() => { if (window.confirm('Publish this complete weekly plan to the team?')) void publishWeeklyPlan() }}>{weeklyPlan?.status === 'published' ? 'Publish update' : 'Publish week'}</Button>}<Button component={Link} to="/planner" variant="light">Edit planner</Button></Group>
+      <Group>{canManageWorkers && <Button variant="default" onClick={() => void autoAssignPreferredWorkers()}>Fill main stations</Button>}{canManageWorkers && <Button color="green" onClick={() => { if (window.confirm('Publish this complete weekly plan to the team?')) void publishWeeklyPlan() }}>{weeklyPlan?.status === 'published' ? 'Publish update' : 'Publish week'}</Button>}<Button component={Link} to="/planner" variant="light">Edit planner</Button></Group>
     </Group>
     <div className="schedule-layout dashboard-schedule-layout">
       <div className="schedule-scroll compact dashboard-schedule-scroll">

@@ -53,5 +53,10 @@ Invitations are sent by the protected `manage-team` Edge Function. Supabase admi
 
 GitHub Actions deploys `main` to `https://gangarig.github.io/shift-planner/`.
 
+## User documentation
+
+- [Plain-language user guide](docs/USER_GUIDE.md)
+- The deployed app includes the same presentable guide at `/guide.html`, linked from the sidebar for every signed-in role.
+
 ## Scope and verification
 See PRODUCT_CHECKLIST.md for completed product behavior and MARKET_READINESS.md for the production launch gates. This is a single-company MVP. Invitation email delivery and a signed-in phone walkthrough still require manual confirmation.

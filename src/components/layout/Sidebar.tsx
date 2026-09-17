@@ -31,6 +31,8 @@ function Sidebar({ onNavigate }: SidebarProps) {
         <Text c="dimmed" fw={700} size="xs" tt="uppercase" px="sm" mt="sm">Workspace</Text>
         <Divider my="xs"/>
         {items}
+        <Divider my="sm"/>
+        <NavLink component="a" href={`${import.meta.env.BASE_URL}guide.html`} target="_blank" rel="noopener noreferrer" label="User guide" onClick={onNavigate} />
     </Stack>
   )
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import { notifications } from '@mantine/notifications'
 import { AppContext } from './AppContext'
@@ -39,6 +39,9 @@ function AppProvider() {
   const weekDays = getWeekDays(monday)
   const weekStart = toDateKey(monday)
   const weekEnd = toDateKey(weekDays[4].date)
+  const activeWeek = useRef(weekStart)
+  const assignmentRequest = useRef(0)
+  activeWeek.current = weekStart
 
   useEffect(() => {
     void Promise.all([refreshWorkers(), refreshStations()])
@@ -86,29 +89,39 @@ function AppProvider() {
   }
 
   async function refreshAssignments() {
+    const requestedWeek = weekStart
+    const request = ++assignmentRequest.current
     try {
       setLoadingAssignments(true); setAssignmentsError(null)
-      setAssignments(await loadAssignments(weekStart, weekEnd))
+      const nextAssignments = await loadAssignments(weekStart, weekEnd)
+      if (activeWeek.current === requestedWeek && assignmentRequest.current === request) setAssignments(nextAssignments)
     } catch (error) {
-      setAssignmentsError('Could not load assignments')
-      notifications.show({ color: 'red', title: 'Assignment loading failed', message: errorMessage(error) })
+      if (activeWeek.current === requestedWeek && assignmentRequest.current === request) {
+        setAssignmentsError('Could not load assignments')
+        notifications.show({ color: 'red', title: 'Assignment loading failed', message: errorMessage(error) })
+      }
       return false
-    } finally { setLoadingAssignments(false) }
+    } finally {
+      if (activeWeek.current === requestedWeek && assignmentRequest.current === request) setLoadingAssignments(false)
+    }
   }
 
   async function refreshDailyNotes() {
-    try { setDailyNotes(await loadDailyNotes(weekStart, weekEnd)) }
-    catch (error) { notifications.show({ color: 'red', title: 'Daily notes failed', message: errorMessage(error) }) }
+    const requestedWeek = weekStart
+    try { const rows = await loadDailyNotes(weekStart, weekEnd); if (activeWeek.current === requestedWeek) setDailyNotes(rows) }
+    catch (error) { if (activeWeek.current === requestedWeek) notifications.show({ color: 'red', title: 'Daily notes failed', message: errorMessage(error) }) }
   }
 
   async function refreshAbsences() {
-    try { setAbsences(await loadAbsences(weekStart, weekEnd)) }
-    catch (error) { notifications.show({ color: 'red', title: 'Absences failed', message: errorMessage(error) }) }
+    const requestedWeek = weekStart
+    try { const rows = await loadAbsences(weekStart, weekEnd); if (activeWeek.current === requestedWeek) setAbsences(rows) }
+    catch (error) { if (activeWeek.current === requestedWeek) notifications.show({ color: 'red', title: 'Absences failed', message: errorMessage(error) }) }
   }
 
   async function refreshWeeklyPlan() {
-    try { setWeeklyPlan(await loadWeeklyPlan(weekStart)) }
-    catch (error) { notifications.show({ color: 'red', title: 'Plan status failed', message: errorMessage(error) }) }
+    const requestedWeek = weekStart
+    try { const plan = await loadWeeklyPlan(weekStart); if (activeWeek.current === requestedWeek) setWeeklyPlan(plan) }
+    catch (error) { if (activeWeek.current === requestedWeek) notifications.show({ color: 'red', title: 'Plan status failed', message: errorMessage(error) }) }
   }
 
   async function refreshCompanyClosures() {
@@ -257,7 +270,17 @@ function AppProvider() {
     await Promise.all([refreshAbsences(), refreshAssignments()])
   }
 
-  return <AppContext.Provider value={{ workers, stations, assignments, dailyNotes, absences, weeklyPlan, companyClosures, createWorker: handleCreateWorker, updateWorker: handleUpdateWorker, removeWorker: handleRemoveWorker, createStation: handleCreateStation, updateStation: handleUpdateStation, removeStation: handleRemoveStation, createAssignment: handleCreateAssignment, updateAssignment: handleUpdateAssignment, removeAssignment: handleRemoveAssignment, saveDailyNote: handleSaveDailyNote, autoAssignPreferredWorkers: handleAutoAssignPreferredWorkers, createAbsence: handleCreateAbsence, removeAbsence: handleRemoveAbsence, publishWeeklyPlan: handlePublishWeeklyPlan, createCompanyClosure: handleCreateCompanyClosure, removeCompanyClosure: handleRemoveCompanyClosure, refreshPlanningData, monday, weekDays, selectedWeekDate, setSelectedWeekDate, loadingWorkers, workersError, loadingStations, stationsError, loadingAssignments, assignmentsError }}><Outlet /></AppContext.Provider>
+  function handleSelectWeek(date: Date) {
+    const nextWeek = toDateKey(getMondayOfWeek(date))
+    if (nextWeek !== activeWeek.current) {
+      activeWeek.current = nextWeek
+      assignmentRequest.current += 1
+      setAssignments([]); setDailyNotes([]); setAbsences([]); setWeeklyPlan(null)
+    }
+    setSelectedWeekDate(date)
+  }
+
+  return <AppContext.Provider value={{ workers, stations, assignments, dailyNotes, absences, weeklyPlan, companyClosures, createWorker: handleCreateWorker, updateWorker: handleUpdateWorker, removeWorker: handleRemoveWorker, createStation: handleCreateStation, updateStation: handleUpdateStation, removeStation: handleRemoveStation, createAssignment: handleCreateAssignment, updateAssignment: handleUpdateAssignment, removeAssignment: handleRemoveAssignment, saveDailyNote: handleSaveDailyNote, autoAssignPreferredWorkers: handleAutoAssignPreferredWorkers, createAbsence: handleCreateAbsence, removeAbsence: handleRemoveAbsence, publishWeeklyPlan: handlePublishWeeklyPlan, createCompanyClosure: handleCreateCompanyClosure, removeCompanyClosure: handleRemoveCompanyClosure, refreshPlanningData, monday, weekDays, selectedWeekDate, setSelectedWeekDate: handleSelectWeek, loadingWorkers, workersError, loadingStations, stationsError, loadingAssignments, assignmentsError }}><Outlet /></AppContext.Provider>
 }
 
 export default AppProvider

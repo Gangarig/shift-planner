@@ -4,14 +4,15 @@ import { notifications } from '@mantine/notifications'
 import { useAuth } from '../context/AuthContext'
 import useApp from '../hooks/useApp'
 import { errorMessage } from '../lib/plannerRules'
+import { toDateKey } from '../lib/dateUtils'
 import { createLeaveRequest, createOvertimeEntry, loadLeaveDocuments, loadLeaveRequests, loadOvertimeEntries, loadPayslips, openPrivateDocument, removeOvertimeEntry, reviewLeaveRequest, uploadLeaveDocument, uploadPayslip, verifyLeaveDocument } from '../services/payrollService'
 import type { LeaveRequest, LeaveRequestDocument, LeaveRequestType, OvertimeEntry, PayslipDocument } from '../types/Payroll'
 
 const requestLabels: Record<LeaveRequestType, string> = { vacation: 'Vacation', sick_leave: 'Sick leave', doctor_appointment: 'Doctor / hospital appointment', other_absence: 'Other absence' }
 const accepted = ['application/pdf', 'image/jpeg', 'image/png']
-const today = new Date().toISOString().slice(0, 10)
+const today = toDateKey(new Date())
 const currentMonth = today.slice(0, 7)
-function monthEnd(month: string) { return new Date(Number(month.slice(0,4)), Number(month.slice(5,7)), 0).toISOString().slice(0,10) }
+function monthEnd(month: string) { return toDateKey(new Date(Number(month.slice(0,4)), Number(month.slice(5,7)), 0, 12)) }
 function defaultSchedule(type: LeaveRequestType): 'late'|'sick'|'holiday'|null { return type === 'vacation' ? 'holiday' : type === 'sick_leave' || type === 'other_absence' ? 'sick' : 'late' }
 function checkFile(file: File | null) { if (!file) throw new Error('Choose a PDF, JPG, or PNG file'); if (!accepted.includes(file.type)) throw new Error('Only PDF, JPG, and PNG files are allowed'); if (file.size > 10 * 1024 * 1024) throw new Error('The file must be 10 MB or smaller'); return file }
 
